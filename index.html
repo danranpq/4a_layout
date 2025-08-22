@@ -184,7 +184,19 @@
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks"></textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">It was their first No-Screen Saturday. Mum had been to a meeting about using electronic devices safely and decided that they all looked at their devices too much.
+
+“We used to talk more and play games as a family. Now we stare at screens,” said Mum.
+
+At the beginning, everyone found it difficult. Dad had caught Mum checking her messages that morning. “It’s work!” she explained, quickly putting her phone away.
+
+“Let’s have breakfast,” Dad said, sitting at the table.
+
+“What’s that on your lap?” Ken asked.
+
+“Nothing,” Dad muttered as he slid the tablet in a drawer.
+
+Zac wanted to finish his game and kept complaining. Mum put more toast on his plate and impatiently told him, “There is more to life than computer games.”</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -198,12 +210,6 @@
           </label>
         </div>
         <button id="generateBtn">Generate Layout</button>
-        <!-- Zoom control buttons -->
-        <div style="margin-top: 15px;">
-          <button id="zoomIn" style="margin-right: 10px; background-color: #e0e0e0;">Zoom In</button>
-          <button id="zoomOut" style="margin-right: 10px; background-color: #e0e0e0;">Zoom Out</button>
-          <button id="resetZoom" style="background-color: #e0e0e0;">Reset (100%)</button>
-        </div>
       </div>
     </div>
   </div>
@@ -214,9 +220,8 @@
   <script>
     // Initialize page
     document.addEventListener('DOMContentLoaded', function () {
-      // Set default zoom to 33%
+      // Set fixed zoom to 33%
       document.body.style.zoom = "33%";
-      let currentZoom = 33; // Track current zoom percentage
 
       // Get DOM elements
       const generateBtn = document.getElementById('generateBtn');
@@ -226,9 +231,6 @@
       const imageSizeGroup = document.getElementById('imageSizeGroup');
       const layoutDisplay = document.getElementById('layoutDisplay');
       const measureContainer = document.getElementById('measureContainer');
-      const zoomInBtn = document.getElementById('zoomIn');
-      const zoomOutBtn = document.getElementById('zoomOut');
-      const resetZoomBtn = document.getElementById('resetZoom');
 
       // Toggle image size option visibility based on include image checkbox
       hasImage.addEventListener('change', function () {
@@ -237,24 +239,6 @@
 
       // Bind generate button event
       generateBtn.addEventListener('click', generateLayout);
-
-      // Zoom control events
-      zoomInBtn.addEventListener('click', () => {
-        currentZoom += 10;
-        if (currentZoom > 200) currentZoom = 200; // Maximum limit
-        document.body.style.zoom = `${currentZoom}%`;
-      });
-
-      zoomOutBtn.addEventListener('click', () => {
-        currentZoom -= 10;
-        if (currentZoom < 10) currentZoom = 10; // Minimum limit
-        document.body.style.zoom = `${currentZoom}%`;
-      });
-
-      resetZoomBtn.addEventListener('click', () => {
-        currentZoom = 100;
-        document.body.style.zoom = `${currentZoom}%`;
-      });
 
       // Main layout generation function
       function generateLayout() {
@@ -457,6 +441,9 @@
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
       }
+      
+      // Generate layout on page load
+      generateLayout();
     });
   </script>
 </body>
