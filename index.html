@@ -177,7 +177,7 @@
   <!-- Display area -->
   <div class="content-area">
     <div id="layoutDisplay" class="padding-area">
-      <!-- Layout will be generated here -->
+      Please enter text and click "Generate Layout" to view the result
     </div>
   </div>
 
@@ -186,19 +186,7 @@
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">It was their first No-Screen Saturday. Mum had been to a meeting about using electronic devices safely and decided that they all looked at their devices too much.
-
-"We used to talk more and play games as a family. Now we stare at screens," said Mum.
-
-At the beginning, everyone found it difficult. Dad had caught Mum checking her messages that morning. "It's work!" she explained, quickly putting her phone away.
-
-"Let's have breakfast," Dad said, sitting at the table.
-
-"What's that on your lap?" Ken asked.
-
-"Nothing," Dad muttered as he slid the tablet in a drawer.
-
-Zac wanted to finish his game and kept complaining. Mum put more toast on his plate and impatiently told him, "There is more to life than computer games."</textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks"></textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -443,11 +431,6 @@ Zac wanted to finish his game and kept complaining. Mum put more toast on his pl
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
       }
-      
-      // Generate layout on page load
-      setTimeout(function() {
-        generateLayout();
-      }, 100);
     });
   </script>
 </body>
