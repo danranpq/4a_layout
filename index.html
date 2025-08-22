@@ -114,6 +114,8 @@
       height: 400px;
       padding: 10px;
       box-sizing: border-box;
+      font-size: 16px;
+      line-height: 1.5;
     }
 
     button {
@@ -175,7 +177,7 @@
   <!-- Display area -->
   <div class="content-area">
     <div id="layoutDisplay" class="padding-area">
-      Click the "Generate Layout" button to view the result
+      <!-- Layout will be generated here -->
     </div>
   </div>
 
@@ -186,17 +188,17 @@
         <label for="textInput">Enter Text</label><br>
         <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">It was their first No-Screen Saturday. Mum had been to a meeting about using electronic devices safely and decided that they all looked at their devices too much.
 
-“We used to talk more and play games as a family. Now we stare at screens,” said Mum.
+"We used to talk more and play games as a family. Now we stare at screens," said Mum.
 
-At the beginning, everyone found it difficult. Dad had caught Mum checking her messages that morning. “It’s work!” she explained, quickly putting her phone away.
+At the beginning, everyone found it difficult. Dad had caught Mum checking her messages that morning. "It's work!" she explained, quickly putting her phone away.
 
-“Let’s have breakfast,” Dad said, sitting at the table.
+"Let's have breakfast," Dad said, sitting at the table.
 
-“What’s that on your lap?” Ken asked.
+"What's that on your lap?" Ken asked.
 
-“Nothing,” Dad muttered as he slid the tablet in a drawer.
+"Nothing," Dad muttered as he slid the tablet in a drawer.
 
-Zac wanted to finish his game and kept complaining. Mum put more toast on his plate and impatiently told him, “There is more to life than computer games.”</textarea>
+Zac wanted to finish his game and kept complaining. Mum put more toast on his plate and impatiently told him, "There is more to life than computer games."</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -443,7 +445,9 @@ Zac wanted to finish his game and kept complaining. Mum put more toast on his pl
       }
       
       // Generate layout on page load
-      generateLayout();
+      setTimeout(function() {
+        generateLayout();
+      }, 100);
     });
   </script>
 </body>
