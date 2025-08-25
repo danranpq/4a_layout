@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Text and Image Layout Generator</title>
   <style>
-    /* Import custom font */
+    /* 自定义字体（按需引入） */
     @font-face {
       font-family: 'URWGroteskWid-Lig';
       src: url('URWGroteskWid-Lig.ttf') format('truetype');
@@ -14,39 +14,54 @@
       font-style: normal;
     }
 
-    /* Center the main heading */
+    /* 全局基础样式 */
+    * {
+      box-sizing: border-box; /* 确保所有元素盒模型计算包含内边距和边框 */
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'URWGroteskWid-Lig', sans-serif;
+      background-color: #fff;
+    }
+
     h1 {
       text-align: center;
       margin: 20px 0;
+      font-size: 28px;
     }
 
+    /* 内容展示区域（与设计图尺寸强关联） */
     .content-area {
-      width: 1800px;
-      height: 920px;
+      width: 1800px;    /* 设计图总宽度 */
+      height: 920px;    /* 设计图总高度 */
       margin: 0 auto;
       position: relative;
       border: 1px solid #ccc;
-      overflow: hidden;
+      overflow: hidden; /* 超出容器部分隐藏，严格遵循设计图尺寸 */
     }
 
+    /* 带内边距的内容容器（设计图的内边距 50px） */
     .padding-area {
-      padding: 50px;
-      height: 820px;
-      width: 1700px;
-      box-sizing: border-box;
+      padding: 50px;     /* 与设计图一致的内边距 */
+      height: 100%;      /* 填满父容器高度 */
+      width: 100%;       /* 填满父容器宽度 */
       display: flex;
-      gap: 100px; /* 100px gap between columns */
+      gap: 100px;        /* 列之间间距，与设计图一致 */
     }
 
+    /* 图片容器（水平居中，底部与文本间距 20px，设计图约定） */
     .image-container {
       width: 100%;
       display: flex;
-      justify-content: center; /* Center image horizontally */
-      margin-bottom: 20px;
+      justify-content: center;
+      margin-bottom: 20px; /* 与设计图一致的图片下方间距 */
     }
 
+    /* 图片占位（严格遵循设计图的两种尺寸） */
     .image-placeholder {
-      width: 800px;
+      width: 800px;  
       height: 460px;
       background-color: #ddd;
       display: flex;
@@ -55,43 +70,42 @@
       font-size: 24px;
       color: #666;
     }
-
     .image-placeholder.small {
-      width: 320px;
-      height: 320px;
+      width: 370px; /* 设计图小图尺寸 */
+      height: 370px;
     }
 
+    /* 文本区域（严格 800px 宽，与设计图一致） */
     .text-area {
       width: 800px;
-      font-family: 'URWGroteskWid-Lig', sans-serif; /* Apply custom font */
       font-size: 41px;
-      font-weight: normal;
       line-height: 50px;
       letter-spacing: 0px;
       word-wrap: break-word;
+      padding: 0; /* 设计图中无额外内边距，若有需按标注调整 */
     }
 
+    /* 左右列容器（严格 800px 宽，与设计图一致） */
     .left-container,
     .right-container {
       width: 800px;
+      height: 100%;
+      overflow: hidden; /* 防止文本超出设计尺寸 */
     }
 
-    /* 段落基础样式 */
+    /* 段落样式（与设计图一致的行高、间距） */
     .paragraph {
-      font-family: 'URWGroteskWid-Lig', sans-serif;
       font-size: 41px;
-      font-weight: normal;
       line-height: 50px;
       letter-spacing: 0px;
       word-wrap: break-word;
+      margin-bottom: 30px; /* 段落间距，可根据设计图微调 */
+    }
+    .paragraph:last-child {
+      margin-bottom: 0; /* 最后一段清除间距 */
     }
 
-    /* 仅对容器内非最后一个段落设置底部间距 */
-    .left-container .paragraph:not(:last-child),
-    .right-container .paragraph:not(:last-child) {
-      margin-bottom: 30px; /* 段落之间的间距 */
-    }
-
+    /* 控制面板（与核心布局区分开，不影响主尺寸） */
     .control-panel {
       width: 1800px;
       margin: 20px auto;
@@ -99,25 +113,20 @@
       background-color: #f5f5f5;
       border-radius: 5px;
     }
-
     .row {
       display: flex;
       gap: 20px;
     }
-
     .column {
       flex: 1;
     }
-
     textarea {
       width: 100%;
       height: 400px;
       padding: 10px;
-      box-sizing: border-box;
       font-size: 16px;
       line-height: 1.5;
     }
-
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -125,51 +134,35 @@
       cursor: pointer;
       border: none;
       border-radius: 4px;
-    }
-
-    #generateBtn {
       background-color: #165DFF;
       color: white;
     }
-
-    #generateBtn:hover {
+    button:hover {
       background-color: #0E42CC;
     }
-
     .checkbox-group {
       margin-bottom: 20px;
     }
 
-    /* Hidden measurement container - for accurate text height calculation */
+    /* 隐藏的测量容器（用于准确计算文本高度，与文本区域样式一致） */
     #measureContainer {
       position: absolute;
       visibility: hidden;
       width: 800px;
-      font-family: 'URWGroteskWid-Lig', sans-serif;
       font-size: 41px;
       line-height: 50px;
       word-wrap: break-word;
       top: -1000px;
+      padding: 0;
     }
-
     #measureContainer .paragraph {
-      font-family: 'URWGroteskWid-Lig', sans-serif;
-      font-size: 41px;
-      font-weight: normal;
-      line-height: 50px;
-      letter-spacing: 0px;
-      word-wrap: break-word;
-    }
-
-    #measureContainer .paragraph:not(:last-child) {
       margin-bottom: 30px;
     }
-
     #measureContainer .paragraph:last-child {
       margin-bottom: 0;
     }
-    
-    /* Loading indicator */
+
+    /* 加载指示器 */
     .loading {
       display: inline-block;
       width: 20px;
@@ -180,7 +173,6 @@
       animation: spin 1s ease-in-out infinite;
       margin-right: 8px;
     }
-    
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -190,14 +182,14 @@
 <body>
   <h1>Text and Image Layout Generator</h1>
 
-  <!-- Display area -->
+  <!-- 核心布局展示区域 -->
   <div class="content-area">
     <div id="layoutDisplay" class="padding-area">
       Please enter text and click "Generate Layout" to view the result
     </div>
   </div>
 
-  <!-- Control panel -->
+  <!-- 控制面板 -->
   <div class="control-panel">
     <div class="row">
       <div class="column">
@@ -212,7 +204,7 @@
         </div>
         <div class="checkbox-group" id="imageSizeGroup">
           <label>
-            <input type="checkbox" id="useSmallImage"> Use small image
+            <input type="checkbox" id="useSmallImage"> Use small image (370x370)
           </label>
         </div>
         <button id="generateBtn">
@@ -223,16 +215,14 @@
     </div>
   </div>
 
-  <!-- Hidden measurement container - key for accurate text height calculation -->
+  <!-- 文本高度测量容器 -->
   <div id="measureContainer"></div>
 
   <script>
-    // Initialize page
     document.addEventListener('DOMContentLoaded', function () {
-      // Set fixed zoom to 33%
-      document.body.style.zoom = "33%";
+      // 严格按设计图比例，若不需要缩放可删除
+      document.body.style.zoom = "33%"; 
 
-      // Get DOM elements
       const generateBtn = document.getElementById('generateBtn');
       const textInput = document.getElementById('textInput');
       const hasImage = document.getElementById('hasImage');
@@ -242,13 +232,11 @@
       const measureContainer = document.getElementById('measureContainer');
       const buttonText = document.getElementById('buttonText');
       const loadingIndicator = document.getElementById('loadingIndicator');
-      
-      // Track font loading state
+
       let fontLoaded = false;
-      
-      // Check if custom font is available
+
+      // 字体加载检测（确保与设计图字体一致）
       function checkFontLoaded() {
-        // Create test elements
         const testElement = document.createElement('span');
         testElement.style.position = 'absolute';
         testElement.style.visibility = 'hidden';
@@ -262,27 +250,19 @@
         document.body.appendChild(testElement);
         document.body.appendChild(referenceElement);
         
-        // If widths are different, font is loaded
         const isLoaded = testElement.offsetWidth !== referenceElement.offsetWidth;
-        
-        // Clean up
         document.body.removeChild(testElement);
         document.body.removeChild(referenceElement);
-        
         return isLoaded;
       }
-      
-      // Wait for font to load with timeout
+
       function waitForFontLoad() {
         return new Promise((resolve) => {
-          // Check immediately
           if (checkFontLoaded()) {
             fontLoaded = true;
             resolve(true);
             return;
           }
-          
-          // Check periodically
           const interval = setInterval(() => {
             if (checkFontLoaded()) {
               clearInterval(interval);
@@ -290,8 +270,6 @@
               resolve(true);
             }
           }, 100);
-          
-          // Timeout after 3 seconds
           setTimeout(() => {
             clearInterval(interval);
             console.warn('Font did not load within 3 seconds, using fallback');
@@ -300,80 +278,56 @@
         });
       }
 
-      // Toggle image size option visibility based on include image checkbox
+      // 图片尺寸选择联动
       hasImage.addEventListener('change', function () {
         imageSizeGroup.style.display = this.checked ? 'block' : 'none';
       });
 
-      // Bind generate button event
+      // 生成布局逻辑（核心是严格按设计图尺寸约束内容）
       generateBtn.addEventListener('click', async function() {
-        // Show loading state
         buttonText.textContent = 'Generating...';
         loadingIndicator.style.display = 'inline-block';
         generateBtn.disabled = true;
         
         try {
-          // Ensure font is loaded before generating layout
           await waitForFontLoad();
           generateLayout();
         } finally {
-          // Restore button state
           buttonText.textContent = 'Generate Layout';
           loadingIndicator.style.display = 'none';
           generateBtn.disabled = false;
         }
       });
 
-      // Main layout generation function
       function generateLayout() {
-        // Get input text and split into paragraphs
         const text = textInput.value.trim();
         if (!text) {
           layoutDisplay.innerHTML = 'Please enter text content';
           return;
         }
-
-        // Split paragraphs by line breaks
         const paragraphs = text.split(/\n+/).filter(para => para.trim() !== '');
-
-        // Calculate layout type
         const layout = calculateLayout(paragraphs, hasImage.checked, useSmallImage.checked);
-
-        // Render layout
         renderLayout(layout);
       }
 
-      // Accurately measure text height
+      // 文本高度测量（严格匹配设计图的文本区域宽度和样式）
       function measureTextHeight(paragraphs) {
-        // Set text to measurement container
         measureContainer.innerHTML = '';
-
-        // Create paragraph container
         const container = document.createElement('div');
         container.className = 'text-area';
-
-        // Add all paragraphs
-        paragraphs.forEach((para, index) => {
+        paragraphs.forEach((para) => {
           const paraElement = document.createElement('div');
           paraElement.className = 'paragraph';
           paraElement.textContent = para;
           container.appendChild(paraElement);
         });
-
         measureContainer.appendChild(container);
-        
-        // Force reflow before measuring
-        container.offsetHeight; // Trigger reflow
-        
-        // Get actual rendered height
-        const height = container.offsetHeight;
-        console.log(`文本高度测量结果：${height} 段落数：${paragraphs.length}`);
-        return height;
+        container.offsetHeight; // 触发重排
+        return container.offsetHeight;
       }
 
-      // Calculate layout type
+      // 布局计算（重点：确保内容不超出设计图的 800px 宽、920px 高容器）
       function calculateLayout(paragraphs, hasImage, useSmallImage) {
-        // No image or no paragraphs case
         if (!hasImage || paragraphs.length === 0) {
           const midPoint = Math.ceil(paragraphs.length / 2);
           return {
@@ -384,22 +338,17 @@
           };
         }
 
-        // Determine image dimensions based on selection
-        const imageHeight = useSmallImage ? 320 : 460;
-        const imageGap = 20;
-        const leftAvailableHeight = 820 - imageHeight - imageGap;
-        console.log(`可用高度：${leftAvailableHeight}`);
+        const imageHeight = useSmallImage ? 370 : 460; // 严格匹配设计图尺寸
+        const imageGap = 20; // 图片与文本间距，设计图标注
+        const leftAvailableHeight = 920 - 50*2 - imageHeight - imageGap; 
+        // 920 是总高，减去上下内边距 50*2，再减图片高度和间距
 
-        // Try to distribute paragraphs to left and right
         const leftParas = [];
         const rightParas = [];
 
-        // Try to put first paragraph
         leftParas.push(paragraphs[0]);
         let currentHeight = measureTextHeight(leftParas);
-        console.log(`首次段落高度测量：${currentHeight} 可用高度：${leftAvailableHeight}`);
 
-        // If first paragraph can't fit, use image only on left layout
         if (currentHeight > leftAvailableHeight) {
           return {
             type: 'image_only',
@@ -409,24 +358,19 @@
           };
         }
 
-        // Try to add more paragraphs
         for (let i = 1; i < paragraphs.length; i++) {
           const tempParas = [...leftParas, paragraphs[i]];
           const tempHeight = measureTextHeight(tempParas);
-
           if (tempHeight <= leftAvailableHeight) {
             leftParas.push(paragraphs[i]);
             currentHeight = tempHeight;
           } else {
-            // Put remaining paragraphs on right
             rightParas.push(...paragraphs.slice(i));
             break;
           }
         }
 
-        // If all paragraphs fit on left
         if (rightParas.length === 0 && leftParas.length === paragraphs.length) {
-          // Consider balancing left and right
           const midPoint = Math.ceil(leftParas.length / 2);
           return {
             type: 'image_with_text',
@@ -436,7 +380,6 @@
           };
         }
 
-        // Left with image + text, right with text layout
         return {
           type: 'image_with_text',
           left_paras: leftParas,
@@ -445,35 +388,28 @@
         };
       }
 
-      // Render paragraph elements
+      // 布局渲染（确保图片、文本严格在设计图尺寸内）
       function renderParagraphs(paragraphs) {
         if (!paragraphs || paragraphs.length === 0) return null;
-
         const container = document.createElement('div');
         container.className = 'text-area';
-
         paragraphs.forEach(para => {
           const paraElement = document.createElement('div');
           paraElement.className = 'paragraph';
           paraElement.textContent = para;
           container.appendChild(paraElement);
         });
-
         return container;
       }
 
-      // Render layout
       function renderLayout(layout) {
-        // Create main container
         const container = document.createElement('div');
         container.className = 'padding-area';
 
-        // Determine image class based on size
         const imageClass = layout.useSmallImage ? 'image-placeholder small' : 'image-placeholder';
 
         switch (layout.type) {
           case 'no_image':
-            // No image layout: text split into two columns
             const leftContainer1 = document.createElement('div');
             leftContainer1.className = 'left-container';
             leftContainer1.appendChild(renderParagraphs(layout.left_paras));
@@ -487,11 +423,9 @@
             break;
 
           case 'image_only':
-            // Image on left, text on right layout
             const leftContainer2 = document.createElement('div');
             leftContainer2.className = 'left-container';
 
-            // Create image container for centering
             const imageContainer2 = document.createElement('div');
             imageContainer2.className = 'image-container';
             imageContainer2.innerHTML = `<div class="${imageClass}">image</div>`;
@@ -507,11 +441,9 @@
             break;
 
           case 'image_with_text':
-            // Image + text on left, text on right layout
             const leftContainer3 = document.createElement('div');
             leftContainer3.className = 'left-container';
 
-            // Create image container for centering
             const imageContainer3 = document.createElement('div');
             imageContainer3.className = 'image-container';
             imageContainer3.innerHTML = `<div class="${imageClass}">image</div>`;
@@ -528,17 +460,8 @@
             break;
         }
 
-        // Update display area
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
-        
-        // 验证布局渲染结果
-        console.log('布局渲染结果验证：');
-        console.log({
-          renderedLeft: container.querySelector('.left-container .text-area'),
-          renderedRight: container.querySelector('.right-container .text-area'),
-          isRendered: !!container.querySelector('.text-area')
-        });
       }
     });
   </script>
