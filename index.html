@@ -6,19 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Text and Image Layout Generator</title>
   <style>
-    /* 自定义字体（按需引入） */
-    @font-face {
-      font-family: 'URWGroteskWid-Lig';
-      src: url('URWGroteskWid-Lig.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-
-    /* 全局基础样式 */
+    /* 全局样式重置 */
     * {
-      box-sizing: border-box; /* 确保所有元素盒模型计算包含内边距和边框 */
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     body {
@@ -32,36 +24,48 @@
       font-size: 28px;
     }
 
-    /* 内容展示区域（与设计图尺寸强关联） */
+    /* 核心布局容器：总宽 1800px，高度 920px */
     .content-area {
-      width: 1800px;    /* 设计图总宽度 */
-      height: 920px;    /* 设计图总高度 */
+      width: 1800px;
+      height: 920px;
       margin: 0 auto;
       position: relative;
       border: 1px solid #ccc;
-      overflow: hidden; /* 超出容器部分隐藏，严格遵循设计图尺寸 */
+      overflow: hidden;
     }
 
-    /* 带内边距的内容容器（设计图的内边距 50px） */
+    /* 带内边距的内容容器：左右内边距 50px，间距 100px */
     .padding-area {
-      padding: 50px;     /* 与设计图一致的内边距 */
-      height: 100%;      /* 填满父容器高度 */
-      width: 100%;       /* 填满父容器宽度 */
+      padding: 50px; /* 上下左右内边距 50px */
+      height: 100%;
+      width: 100%;
       display: flex;
-      gap: 100px;        /* 列之间间距，与设计图一致 */
+      gap: 100px; /* 左右列间距 100px */
+      box-sizing: border-box; /* 确保内边距算入总宽 */
     }
 
-    /* 图片容器（水平居中，底部与文本间距 20px，设计图约定） */
+    /* 左右列容器：各 800px 宽，无额外内边距 */
+    .left-container,
+    .right-container {
+      width: 800px;
+      height: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
+      padding: 0; /* 清除默认内边距 */
+      margin: 0; /* 清除默认外边距 */
+    }
+
+    /* 图片容器：水平居中，与文本间距 20px */
     .image-container {
       width: 100%;
       display: flex;
       justify-content: center;
-      margin-bottom: 20px; /* 与设计图一致的图片下方间距 */
+      margin-bottom: 20px; /* 图片与文本的间距 */
     }
 
-    /* 图片占位（严格遵循设计图的两种尺寸） */
+    /* 图片占位：两种尺寸 */
     .image-placeholder {
-      width: 800px;  
+      width: 800px;
       height: 460px;
       background-color: #ddd;
       display: flex;
@@ -71,41 +75,30 @@
       color: #666;
     }
     .image-placeholder.small {
-      width: 370px; /* 设计图小图尺寸 */
+      width: 370px;
       height: 370px;
     }
 
-    /* 文本区域（严格 800px 宽，与设计图一致） */
+    /* 文本区域：填充满父容器，控制文本样式 */
     .text-area {
-      width: 800px;
+      width: 100%;
       font-size: 41px;
       line-height: 50px;
       letter-spacing: 0px;
       word-wrap: break-word;
-      padding: 0; /* 设计图中无额外内边距，若有需按标注调整 */
+      /* 如需文本与容器边缘间距，可在此添加 */
+      /* padding: 0 20px; */
     }
 
-    /* 左右列容器（严格 800px 宽，与设计图一致） */
-    .left-container,
-    .right-container {
-      width: 800px;
-      height: 100%;
-      overflow: hidden; /* 防止文本超出设计尺寸 */
-    }
-
-    /* 段落样式（与设计图一致的行高、间距） */
+    /* 段落样式：统一间距 */
     .paragraph {
-      font-size: 41px;
-      line-height: 50px;
-      letter-spacing: 0px;
-      word-wrap: break-word;
-      margin-bottom: 30px; /* 段落间距，可根据设计图微调 */
+      margin-bottom: 30px;
     }
     .paragraph:last-child {
-      margin-bottom: 0; /* 最后一段清除间距 */
+      margin-bottom: 0;
     }
 
-    /* 控制面板（与核心布局区分开，不影响主尺寸） */
+    /* 控制面板样式 */
     .control-panel {
       width: 1800px;
       margin: 20px auto;
@@ -144,7 +137,7 @@
       margin-bottom: 20px;
     }
 
-    /* 隐藏的测量容器（用于准确计算文本高度，与文本区域样式一致） */
+    /* 隐藏测量容器：用于计算文本高度 */
     #measureContainer {
       position: absolute;
       visibility: hidden;
@@ -153,7 +146,7 @@
       line-height: 50px;
       word-wrap: break-word;
       top: -1000px;
-      padding: 0;
+      box-sizing: border-box;
     }
     #measureContainer .paragraph {
       margin-bottom: 30px;
@@ -194,7 +187,19 @@
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks"></textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">It was their first No-Screen Saturday. Mum had been to a meeting about using electronic devices safely and decided that they all looked at their devices too much.
+
+"We used to talk more and play games as a family. Now we stare at screens," said Mum.
+
+At the beginning, everyone found it difficult. Dad had caught Mum checking her messages that morning. "It’s work!" she explained, quickly putting her phone away.
+
+"Let’s have breakfast," Dad said, sitting at the table.
+
+"What’s that on your lap?" Ken asked.
+
+"Nothing," Dad muttered as he slid the tablet in a drawer.
+
+Zac wanted to finish his game and kept complaining. Mum put more toast on his plate and impatiently told him, "There is more to life than computer games."</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -220,7 +225,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      // 严格按设计图比例，若不需要缩放可删除
+      // 按设计图比例缩放（可选）
       document.body.style.zoom = "33%"; 
 
       const generateBtn = document.getElementById('generateBtn');
@@ -235,7 +240,7 @@
 
       let fontLoaded = false;
 
-      // 字体加载检测（确保与设计图字体一致）
+      // 字体加载检测
       function checkFontLoaded() {
         const testElement = document.createElement('span');
         testElement.style.position = 'absolute';
@@ -283,7 +288,7 @@
         imageSizeGroup.style.display = this.checked ? 'block' : 'none';
       });
 
-      // 生成布局逻辑（核心是严格按设计图尺寸约束内容）
+      // 生成布局逻辑
       generateBtn.addEventListener('click', async function() {
         buttonText.textContent = 'Generating...';
         loadingIndicator.style.display = 'inline-block';
@@ -299,18 +304,7 @@
         }
       });
 
-      function generateLayout() {
-        const text = textInput.value.trim();
-        if (!text) {
-          layoutDisplay.innerHTML = 'Please enter text content';
-          return;
-        }
-        const paragraphs = text.split(/\n+/).filter(para => para.trim() !== '');
-        const layout = calculateLayout(paragraphs, hasImage.checked, useSmallImage.checked);
-        renderLayout(layout);
-      }
-
-      // 文本高度测量（严格匹配设计图的文本区域宽度和样式）
+      // 测量文本高度（严格匹配文本区域样式）
       function measureTextHeight(paragraphs) {
         measureContainer.innerHTML = '';
         const container = document.createElement('div');
@@ -326,7 +320,7 @@
         return container.offsetHeight;
       }
 
-      // 布局计算（重点：确保内容不超出设计图的 800px 宽、920px 高容器）
+      // 布局计算（确保宽度正确）
       function calculateLayout(paragraphs, hasImage, useSmallImage) {
         if (!hasImage || paragraphs.length === 0) {
           const midPoint = Math.ceil(paragraphs.length / 2);
@@ -338,30 +332,21 @@
           };
         }
 
-        const imageHeight = useSmallImage ? 370 : 460; // 严格匹配设计图尺寸
-        const imageGap = 20; // 图片与文本间距，设计图标注
-        const leftAvailableHeight = 920 - 50*2 - imageHeight - imageGap; 
-        // 920 是总高，减去上下内边距 50*2，再减图片高度和间距
+        const imageHeight = useSmallImage ? 370 : 460;
+        const imageGap = 20;
+        const totalHeight = 920;
+        const paddingTopBottom = 50 * 2;
+        const leftAvailableHeight = totalHeight - paddingTopBottom - imageHeight - imageGap; 
 
         const leftParas = [];
         const rightParas = [];
 
-        leftParas.push(paragraphs[0]);
-        let currentHeight = measureTextHeight(leftParas);
-
-        if (currentHeight > leftAvailableHeight) {
-          return {
-            type: 'image_only',
-            left_paras: null,
-            right_paras: paragraphs,
-            useSmallImage: useSmallImage
-          };
-        }
-
-        for (let i = 1; i < paragraphs.length; i++) {
+        let currentHeight = 0;
+        for (let i = 0; i < paragraphs.length; i++) {
           const tempParas = [...leftParas, paragraphs[i]];
           const tempHeight = measureTextHeight(tempParas);
-          if (tempHeight <= leftAvailableHeight) {
+          
+          if (tempHeight <= leftAvailableHeight + 30) { 
             leftParas.push(paragraphs[i]);
             currentHeight = tempHeight;
           } else {
@@ -388,78 +373,51 @@
         };
       }
 
-      // 布局渲染（确保图片、文本严格在设计图尺寸内）
+      // 渲染段落（填充满父容器）
       function renderParagraphs(paragraphs) {
         if (!paragraphs || paragraphs.length === 0) return null;
-        const container = document.createElement('div');
-        container.className = 'text-area';
+        const textArea = document.createElement('div');
+        textArea.className = 'text-area';
         paragraphs.forEach(para => {
           const paraElement = document.createElement('div');
           paraElement.className = 'paragraph';
           paraElement.textContent = para;
-          container.appendChild(paraElement);
+          textArea.appendChild(paraElement);
         });
-        return container;
+        return textArea;
       }
 
+      // 渲染布局（确保容器宽度正确）
       function renderLayout(layout) {
         const container = document.createElement('div');
         container.className = 'padding-area';
 
         const imageClass = layout.useSmallImage ? 'image-placeholder small' : 'image-placeholder';
 
-        switch (layout.type) {
-          case 'no_image':
-            const leftContainer1 = document.createElement('div');
-            leftContainer1.className = 'left-container';
-            leftContainer1.appendChild(renderParagraphs(layout.left_paras));
+        // 左列容器
+        const leftContainer = document.createElement('div');
+        leftContainer.className = 'left-container';
 
-            const rightContainer1 = document.createElement('div');
-            rightContainer1.className = 'right-container';
-            rightContainer1.appendChild(renderParagraphs(layout.right_paras));
+        // 图片容器
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'image-container';
+        imageContainer.innerHTML = `<div class="${imageClass}">image</div>`;
+        leftContainer.appendChild(imageContainer);
 
-            container.appendChild(leftContainer1);
-            container.appendChild(rightContainer1);
-            break;
+        // 左列文本
+        const leftText = renderParagraphs(layout.left_paras);
+        leftContainer.appendChild(leftText);
 
-          case 'image_only':
-            const leftContainer2 = document.createElement('div');
-            leftContainer2.className = 'left-container';
+        // 右列容器
+        const rightContainer = document.createElement('div');
+        rightContainer.className = 'right-container';
 
-            const imageContainer2 = document.createElement('div');
-            imageContainer2.className = 'image-container';
-            imageContainer2.innerHTML = `<div class="${imageClass}">image</div>`;
+        // 右列文本
+        const rightText = renderParagraphs(layout.right_paras);
+        rightContainer.appendChild(rightText);
 
-            leftContainer2.appendChild(imageContainer2);
-
-            const rightContainer2 = document.createElement('div');
-            rightContainer2.className = 'right-container';
-            rightContainer2.appendChild(renderParagraphs(layout.right_paras));
-
-            container.appendChild(leftContainer2);
-            container.appendChild(rightContainer2);
-            break;
-
-          case 'image_with_text':
-            const leftContainer3 = document.createElement('div');
-            leftContainer3.className = 'left-container';
-
-            const imageContainer3 = document.createElement('div');
-            imageContainer3.className = 'image-container';
-            imageContainer3.innerHTML = `<div class="${imageClass}">image</div>`;
-
-            leftContainer3.appendChild(imageContainer3);
-            leftContainer3.appendChild(renderParagraphs(layout.left_paras));
-
-            const rightContainer3 = document.createElement('div');
-            rightContainer3.className = 'right-container';
-            rightContainer3.appendChild(renderParagraphs(layout.right_paras));
-
-            container.appendChild(leftContainer3);
-            container.appendChild(rightContainer3);
-            break;
-        }
-
+        container.appendChild(leftContainer);
+        container.appendChild(rightContainer);
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
       }
