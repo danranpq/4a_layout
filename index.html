@@ -54,10 +54,12 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
+      /* 添加灰色虚线边框，不占空间 */
+      border: 1px dashed #ccc;
     }
 
-     /* 居中对齐 */
-     .left-container {
+    /* 居中对齐 */
+    .left-container {
       justify-content: center;
       align-items: center;
     }
@@ -225,7 +227,11 @@
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks"></textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">"Well, I prefer telling jokes and talking about funny films," said Hassan, crossly.
+Suddenly, they heard a strange rattling sound outside. They all froze.
+"What's that?" whispered Sam.
+"Do you want us to leave you here alone?" asked Lily, seriously. "We will just go inside if you carry on."
+"But it's fun to be scared!" said Jasmin, laughing. "That's why people enjoy scary stories and movies."</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -464,9 +470,9 @@
         // Left with image + text, right with text layout
         return {
           type: 'image_with_text',
-            left_paras: leftParas,
-            right_paras: rightParas,
-            useSmallImage: useSmallImage
+          left_paras: leftParas,
+          right_paras: rightParas,
+          useSmallImage: useSmallImage
         };
       }
 
