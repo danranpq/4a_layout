@@ -18,6 +18,13 @@
     h1 {
       text-align: center;
       margin: 20px 0;
+      font-family: 'URWGroteskWid-Lig', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
     }
 
     .content-area {
@@ -27,64 +34,70 @@
       position: relative;
       border: 1px solid #ccc;
       overflow: hidden;
+      background-color: #fff;
+      box-sizing: border-box;
+      padding: 50px; /* 大容器四周50px padding */
     }
 
-    .padding-area {
-      padding: 50px;
-      height: 100%; /* 填满父容器高度 */
-      width: 100%; /* 填满父容器宽度 */
+    .layout-container {
+      width: 1700px; /* 1800 - 50*2 = 1700 */
+      height: 820px; /* 920 - 50*2 = 820 */
       box-sizing: border-box;
       display: flex;
-      gap: 100px; /* 100px gap between columns */
+      gap: 100px; /* 左右容器间隔100px */
+    }
+
+    .left-container,
+    .right-container {
+      width: 800px; /* (1700 - 100) / 2 = 800px */
+      height: 820px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+     /* 居中对齐 */
+     .left-container {
+      justify-content: center;
+      align-items: center;
+    }
+
+    .right-container {
+      justify-content: center;
+      align-items: center;
     }
 
     .image-container {
       width: 100%;
       display: flex;
-      justify-content: center; /* Center image horizontally */
+      justify-content: center;
       margin-bottom: 20px;
     }
 
     .image-placeholder {
       width: 800px;
       height: 460px;
-      background-color: #ddd;
+      background-color: #f0f0f0;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 24px;
-      color: #666;
+      color: #999;
     }
 
     .image-placeholder.small {
-      width: 320px;
-      height: 320px;
+      width: 370px;
+      height: 370px;
     }
 
     .text-area {
       width: 800px;
-      font-family: 'URWGroteskWid-Lig', sans-serif; /* Apply custom font */
+      font-family: 'URWGroteskWid-Lig', sans-serif;
       font-size: 41px;
       font-weight: normal;
       line-height: 50px;
       letter-spacing: 0px;
       word-wrap: break-word;
-    }
-
-    .left-container,
-    .right-container {
-      width: 800px;
-      box-sizing: border-box; 
-    }
-  /* 居中对齐 */
-    .left-container {
-      justify-content: flex-start;
-      align-items: center;
-    }
-
-    .right-container {
-      justify-content: flex-start;
-      align-items: flex-start;
     }
 
     /* 段落基础样式 */
@@ -95,12 +108,12 @@
       line-height: 50px;
       letter-spacing: 0px;
       word-wrap: break-word;
+      width: 100%;
+      margin-bottom: 30px;
     }
 
-    /* 仅对容器内非最后一个段落设置底部间距 */
-    .left-container .paragraph:not(:last-child),
-    .right-container .paragraph:not(:last-child) {
-      margin-bottom: 30px; /* 段落之间的间距 */
+    .paragraph:last-child {
+      margin-bottom: 0;
     }
 
     .control-panel {
@@ -109,6 +122,7 @@
       padding: 20px;
       background-color: #f5f5f5;
       border-radius: 5px;
+      box-sizing: border-box;
     }
 
     .row {
@@ -127,6 +141,7 @@
       box-sizing: border-box;
       font-size: 16px;
       line-height: 1.5;
+      font-family: monospace;
     }
 
     button {
@@ -170,9 +185,6 @@
       line-height: 50px;
       letter-spacing: 0px;
       word-wrap: break-word;
-    }
-
-    #measureContainer .paragraph:not(:last-child) {
       margin-bottom: 30px;
     }
 
@@ -203,7 +215,7 @@
 
   <!-- Display area -->
   <div class="content-area">
-    <div id="layoutDisplay" class="padding-area">
+    <div id="layoutDisplay" class="layout-container">
       Please enter text and click "Generate Layout" to view the result
     </div>
   </div>
@@ -213,7 +225,11 @@
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks"></textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">"Well, I prefer telling jokes and talking about funny films," said Hassan, crossly.
+Suddenly, they heard a strange rattling sound outside. They all froze.
+"What's that?" whispered Sam.
+"Do you want us to leave you here alone?" asked Lily, seriously. "We will just go inside if you carry on."
+"But it's fun to be scared!" said Jasmin, laughing. "That's why people enjoy scary stories and movies."</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -307,6 +323,7 @@
             clearInterval(interval);
             console.warn('Font did not load within 3 seconds, using fallback');
             resolve(false);
+            fontLoaded = true; // 强制设置为已加载，即使字体未加载也继续
           }, 3000);
         });
       }
@@ -325,7 +342,9 @@
         
         try {
           // Ensure font is loaded before generating layout
-          await waitForFontLoad();
+          if (!fontLoaded) {
+            await waitForFontLoad();
+          }
           generateLayout();
         } finally {
           // Restore button state
@@ -344,8 +363,10 @@
           return;
         }
 
-        // Split paragraphs by line breaks
-        const paragraphs = text.split(/\n+/).filter(para => para.trim() !== '');
+        // Split paragraphs by line breaks and clean up
+        const paragraphs = text.split(/\n+/)
+          .filter(para => para.trim() !== '')
+          .map(para => para.replace(/^- /, '').trim()); // Remove bullet points if present
 
         // Calculate layout type
         const layout = calculateLayout(paragraphs, hasImage.checked, useSmallImage.checked);
@@ -378,7 +399,6 @@
         
         // Get actual rendered height
         const height = container.offsetHeight;
-        console.log(`文本高度测量结果：${height} 段落数：${paragraphs.length}`);
         return height;
       }
 
@@ -396,10 +416,9 @@
         }
 
         // Determine image dimensions based on selection
-        const imageHeight = useSmallImage ? 320 : 460;
+        const imageHeight = useSmallImage ? 370 : 460;
         const imageGap = 20;
-        const leftAvailableHeight = (920 - 50*2) - imageHeight - imageGap; 
-        console.log(`可用高度：${leftAvailableHeight}`);
+        const leftAvailableHeight = 820 - imageHeight - imageGap; 
 
         // Try to distribute paragraphs to left and right
         const leftParas = [];
@@ -408,7 +427,6 @@
         // Try to put first paragraph
         leftParas.push(paragraphs[0]);
         let currentHeight = measureTextHeight(leftParas);
-        console.log(`首次段落高度测量：${currentHeight} 可用高度：${leftAvailableHeight}`);
 
         // If first paragraph can't fit, use image only on left layout
         if (currentHeight > leftAvailableHeight) {
@@ -450,9 +468,9 @@
         // Left with image + text, right with text layout
         return {
           type: 'image_with_text',
-          left_paras: leftParas,
-          right_paras: rightParas,
-          useSmallImage: useSmallImage
+            left_paras: leftParas,
+            right_paras: rightParas,
+            useSmallImage: useSmallImage
         };
       }
 
@@ -477,7 +495,7 @@
       function renderLayout(layout) {
         // Create main container
         const container = document.createElement('div');
-        container.className = 'padding-area';
+        container.className = 'layout-container';
 
         // Determine image class based on size
         const imageClass = layout.useSmallImage ? 'image-placeholder small' : 'image-placeholder';
@@ -528,7 +546,11 @@
             imageContainer3.innerHTML = `<div class="${imageClass}">image</div>`;
 
             leftContainer3.appendChild(imageContainer3);
-            leftContainer3.appendChild(renderParagraphs(layout.left_paras));
+            
+            // Add text content if available
+            if (layout.left_paras && layout.left_paras.length > 0) {
+              leftContainer3.appendChild(renderParagraphs(layout.left_paras));
+            }
 
             const rightContainer3 = document.createElement('div');
             rightContainer3.className = 'right-container';
@@ -542,15 +564,10 @@
         // Update display area
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
-        
-        // 验证布局渲染结果
-        console.log('布局渲染结果验证：');
-        console.log({
-          renderedLeft: container.querySelector('.left-container .text-area'),
-          renderedRight: container.querySelector('.right-container .text-area'),
-          isRendered: !!container.querySelector('.text-area')
-        });
       }
+      
+      // Generate initial layout on page load
+      generateBtn.click();
     });
   </script>
 </body>
