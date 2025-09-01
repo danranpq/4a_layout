@@ -61,12 +61,12 @@
 
     /* 居中对齐 */
     .left-container {
-      justify-content: flex-start;
+      justify-content: center;
       align-items: center;
     }
 
     .right-container {
-      justify-content: flex-start;
+      justify-content: center;
       align-items: center;
     }
 
@@ -222,6 +222,25 @@
       font-size: 16px;
       font-family: sans-serif;
     }
+    
+    /* 内容包装器 - 用于居中内容 */
+    .content-wrapper {
+      width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* 文本容器 - 用于控制文本溢出 */
+    .text-container {
+      width: 100%;
+      position: relative;
+    }
+    
+    /* 溢出容器样式 */
+    .overflow-container {
+      justify-content: flex-start !important;
+    }
   </style>
 </head>
 
@@ -240,7 +259,20 @@
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks"></textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">but the nest was small. It was too little for everyone.
+Mother Bird looked at her children. "It's time for you to fly," she said.
+Sister Bird stood up and looked down.
+"You can do it," said Mother Bird.
+"Yes, I can." Sister Bird said quietly. Then she jumped out of the nest and fell.
+Mother Bird and Little Bird looked around. "There is also!" they wondered.
+Suddenly, they saw her flying up in the sky, singing a happy song. Mother Bird smiled.
+Next, it was Little Bird's turn, but she was scared. She looked down at the ground.
+
+"No, I can't," she said quietly. Little tears rolled down her cheeks.
+
+"Don't worry," said Mother Bird. "You are a bird. Birds can fly."
+
+Little Bird closed her eyes and jumped. She fell a long way, and then she opened her eyes. She was flying with Sister Bird.</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -487,11 +519,11 @@
       }
 
       // Render paragraph elements
-      function renderParagraphs(paragraphs, containerHeight) {
+      function renderParagraphs(paragraphs, containerHeight, isOverflow = false) {
         if (!paragraphs || paragraphs.length === 0) return null;
 
         const container = document.createElement('div');
-        container.className = 'text-area';
+        container.className = 'text-container';
 
         paragraphs.forEach(para => {
           const paraElement = document.createElement('div');
@@ -502,7 +534,7 @@
 
         // Check if content overflows
         const contentHeight = container.scrollHeight;
-        if (contentHeight > containerHeight) {
+        if (contentHeight > containerHeight && isOverflow) {
           const indicator = document.createElement('div');
           indicator.className = 'overflow-indicator';
           indicator.textContent = 'Content exceeds container';
@@ -526,11 +558,19 @@
             // No image layout: text split into two columns
             const leftContainer1 = document.createElement('div');
             leftContainer1.className = 'left-container';
-            leftContainer1.appendChild(renderParagraphs(layout.left_paras, 820));
+            
+            const leftWrapper1 = document.createElement('div');
+            leftWrapper1.className = 'content-wrapper';
+            leftWrapper1.appendChild(renderParagraphs(layout.left_paras, 820, true));
+            leftContainer1.appendChild(leftWrapper1);
 
             const rightContainer1 = document.createElement('div');
             rightContainer1.className = 'right-container';
-            rightContainer1.appendChild(renderParagraphs(layout.right_paras, 820));
+            
+            const rightWrapper1 = document.createElement('div');
+            rightWrapper1.className = 'content-wrapper';
+            rightWrapper1.appendChild(renderParagraphs(layout.right_paras, 820, true));
+            rightContainer1.appendChild(rightWrapper1);
 
             container.appendChild(leftContainer1);
             container.appendChild(rightContainer1);
@@ -540,17 +580,25 @@
             // Image on left, text on right layout
             const leftContainer2 = document.createElement('div');
             leftContainer2.className = 'left-container';
-
+            
+            const leftWrapper2 = document.createElement('div');
+            leftWrapper2.className = 'content-wrapper';
+            
             // Create image container for centering
             const imageContainer2 = document.createElement('div');
             imageContainer2.className = 'image-container';
             imageContainer2.innerHTML = `<div class="${imageClass}">image</div>`;
-
-            leftContainer2.appendChild(imageContainer2);
+            
+            leftWrapper2.appendChild(imageContainer2);
+            leftContainer2.appendChild(leftWrapper2);
 
             const rightContainer2 = document.createElement('div');
             rightContainer2.className = 'right-container';
-            rightContainer2.appendChild(renderParagraphs(layout.right_paras, 820));
+            
+            const rightWrapper2 = document.createElement('div');
+            rightWrapper2.className = 'content-wrapper';
+            rightWrapper2.appendChild(renderParagraphs(layout.right_paras, 820, true));
+            rightContainer2.appendChild(rightWrapper2);
 
             container.appendChild(leftContainer2);
             container.appendChild(rightContainer2);
@@ -560,23 +608,32 @@
             // Image + text on left, text on right layout
             const leftContainer3 = document.createElement('div');
             leftContainer3.className = 'left-container';
-
+            
+            const leftWrapper3 = document.createElement('div');
+            leftWrapper3.className = 'content-wrapper';
+            
             // Create image container for centering
             const imageContainer3 = document.createElement('div');
             imageContainer3.className = 'image-container';
             imageContainer3.innerHTML = `<div class="${imageClass}">image</div>`;
-
-            leftContainer3.appendChild(imageContainer3);
+            
+            leftWrapper3.appendChild(imageContainer3);
             
             // Add text content if available
             if (layout.left_paras && layout.left_paras.length > 0) {
               const textHeight = 820 - (layout.useSmallImage ? 370 : 460) - 20;
-              leftContainer3.appendChild(renderParagraphs(layout.left_paras, textHeight));
+              leftWrapper3.appendChild(renderParagraphs(layout.left_paras, textHeight, true));
             }
+            
+            leftContainer3.appendChild(leftWrapper3);
 
             const rightContainer3 = document.createElement('div');
             rightContainer3.className = 'right-container';
-            rightContainer3.appendChild(renderParagraphs(layout.right_paras, 820));
+            
+            const rightWrapper3 = document.createElement('div');
+            rightWrapper3.className = 'content-wrapper';
+            rightWrapper3.appendChild(renderParagraphs(layout.right_paras, 820, true));
+            rightContainer3.appendChild(rightWrapper3);
 
             container.appendChild(leftContainer3);
             container.appendChild(rightContainer3);
@@ -586,6 +643,37 @@
         // Update display area
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
+        
+        // 检查是否需要调整对齐方式
+        adjustAlignment();
+      }
+      
+      // 调整对齐方式
+      function adjustAlignment() {
+        const leftContainers = document.querySelectorAll('.left-container');
+        const rightContainers = document.querySelectorAll('.right-container');
+        
+        leftContainers.forEach(container => {
+          const wrapper = container.querySelector('.content-wrapper');
+          if (wrapper && wrapper.scrollHeight <= 820) {
+            // 内容未超出，保持居中
+            container.style.justifyContent = 'center';
+          } else {
+            // 内容超出，顶部对齐
+            container.style.justifyContent = 'flex-start';
+          }
+        });
+        
+        rightContainers.forEach(container => {
+          const wrapper = container.querySelector('.content-wrapper');
+          if (wrapper && wrapper.scrollHeight <= 820) {
+            // 内容未超出，保持居中
+            container.style.justifyContent = 'center';
+          } else {
+            // 内容超出，顶部对齐
+            container.style.justifyContent = 'flex-start';
+          }
+        });
       }
       
       // Generate initial layout on page load
