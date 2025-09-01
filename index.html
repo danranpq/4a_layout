@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Text and Image Layout Generator</title>
+  <title>Text and Image Layout Generator with Pagination</title>
   <style>
     /* Import custom font */
     @font-face {
@@ -25,6 +25,7 @@
       margin: 0;
       padding: 0;
       overflow-x: auto;
+      font-family: Arial, sans-serif;
     }
 
     .content-area {
@@ -36,15 +37,16 @@
       overflow: hidden;
       background-color: #fff;
       box-sizing: border-box;
-      padding: 50px; /* 大容器四周50px padding */
+      padding: 50px;
     }
 
     .layout-container {
-      width: 1700px; /* 1800 - 50*2 = 1700 */
-      height: 820px; /* 920 - 50*2 = 820 */
+      width: 1700px;
+      height: 820px;
       box-sizing: border-box;
       display: flex;
       gap: 100px; /* 左右容器间隔100px */
+      position: relative;
     }
 
     .left-container,
@@ -54,7 +56,6 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      /* 添加灰色虚线边框，不占空间 */
       border: 1px dashed #ccc;
       position: relative;
     }
@@ -237,15 +238,53 @@
       position: relative;
     }
     
-    /* 溢出容器样式 */
-    .overflow-container {
-      justify-content: flex-start !important;
+    /* 分页控件 */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    
+    .pagination button {
+      padding: 8px 16px;
+      background-color: #f0f0f0;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+    
+    .pagination button.active {
+      background-color: #165DFF;
+      color: white;
+      border-color: #165DFF;
+    }
+    
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .page-info {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    
+    /* 页面容器 */
+    .page {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .page.active {
+      display: flex;
     }
   </style>
 </head>
 
 <body>
-  <h1>Text and Image Layout Generator</h1>
+  <h1>Text and Image Layout Generator with Pagination</h1>
 
   <!-- Display area -->
   <div class="content-area">
@@ -254,12 +293,33 @@
     </div>
   </div>
 
+  <!-- Pagination controls -->
+  <div class="pagination" id="pagination" style="display: none;">
+    <button id="prevPage">&lt; Previous</button>
+    <button id="nextPage">Next &gt;</button>
+  </div>
+  <div class="page-info" id="pageInfo" style="display: none;">Page 1 of 1</div>
+
   <!-- Control panel -->
   <div class="control-panel">
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks"></textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">In a tall tree in the forest, Little Bird lived with her mum and sister. The birds were growing up, but the nest was small. It was too little for everyone.
+Mother Bird looked at her children. "It's time for you to fly," she said.
+Sister Bird stood up and looked down.
+"You can do it," said Mother Bird.
+"Yes, I can," Sister Bird said quietly. Then she jumped out of the nest and fell.
+Mother Bird and Little Bird looked around. "Where is she?" they wondered.
+Suddenly, they saw her flying up in the sky, singing a happy song. Mother Bird smiled.
+Next, it was Little Bird’s turn, but she was scared. She looked down at the ground.
+"It's a very long way down," she thought.
+"You can do it," said Mother Bird.
+"No, I can't," she said quietly. Little tears rolled down her cheeks.
+"Don't worry," said Mother Bird. "You are a bird. Birds can fly."
+Little Bird closed her eyes and jumped. She fell a long way, and then she opened her eyes. She was flying with Sister Bird.
+"You see," called Mother Bird, "you can do it."
+"Yes, I can," Little Bird laughed, as they all sang a happy song.</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -299,9 +359,16 @@
       const measureContainer = document.getElementById('measureContainer');
       const buttonText = document.getElementById('buttonText');
       const loadingIndicator = document.getElementById('loadingIndicator');
+      const pagination = document.getElementById('pagination');
+      const prevPageBtn = document.getElementById('prevPage');
+      const nextPageBtn = document.getElementById('nextPage');
+      const pageInfo = document.getElementById('pageInfo');
       
       // Track font loading state
       let fontLoaded = false;
+      let currentPage = 0;
+      let totalPages = 0;
+      let pagesData = [];
       
       // Check if custom font is available
       function checkFontLoaded() {
@@ -384,6 +451,34 @@
         }
       });
 
+      // Pagination event handlers
+      prevPageBtn.addEventListener('click', function() {
+        if (currentPage > 0) {
+          showPage(currentPage - 1);
+        }
+      });
+      
+      nextPageBtn.addEventListener('click', function() {
+        if (currentPage < totalPages - 1) {
+          showPage(currentPage + 1);
+        }
+      });
+
+      // Show specific page
+      function showPage(pageIndex) {
+        currentPage = pageIndex;
+        
+        // Update pagination controls
+        prevPageBtn.disabled = currentPage === 0;
+        nextPageBtn.disabled = currentPage === totalPages - 1;
+        
+        // Update page info
+        pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+        
+        // Render the page
+        renderPage(pagesData[currentPage]);
+      }
+
       // Main layout generation function
       function generateLayout() {
         // Get input text and split into paragraphs
@@ -398,11 +493,28 @@
           .filter(para => para.trim() !== '')
           .map(para => para.replace(/^- /, '').trim()); // Remove bullet points if present
 
-        // Calculate layout type
-        const layout = calculateLayout(paragraphs, hasImage.checked, useSmallImage.checked);
-
-        // Render layout
-        renderLayout(layout);
+        // Calculate layout pages
+        pagesData = calculatePages(paragraphs, hasImage.checked, useSmallImage.checked);
+        totalPages = pagesData.length;
+        
+        if (totalPages === 0) {
+          layoutDisplay.innerHTML = 'No content to display';
+          pagination.style.display = 'none';
+          pageInfo.style.display = 'none';
+          return;
+        }
+        
+        // Show first page
+        showPage(0);
+        
+        // Show pagination controls if multiple pages
+        if (totalPages > 1) {
+          pagination.style.display = 'flex';
+          pageInfo.style.display = 'block';
+        } else {
+          pagination.style.display = 'none';
+          pageInfo.style.display = 'none';
+        }
       }
 
       // Accurately measure text height
@@ -432,77 +544,115 @@
         return height;
       }
 
-      // Calculate layout type
-      function calculateLayout(paragraphs, hasImage, useSmallImage) {
-        // No image or no paragraphs case
-        if (!hasImage || paragraphs.length === 0) {
-          const midPoint = Math.ceil(paragraphs.length / 2);
-          return {
-            type: 'no_image',
-            left_paras: paragraphs.slice(0, midPoint),
-            right_paras: paragraphs.slice(midPoint),
-            useSmallImage: false
-          };
-        }
-
-        // Determine image dimensions based on selection
-        const imageHeight = useSmallImage ? 370 : 460;
-        const imageGap = 20;
-        const leftAvailableHeight = 820 - imageHeight - imageGap; 
-
-        // Try to distribute paragraphs to left and right
-        const leftParas = [];
-        const rightParas = [...paragraphs]; // Start with all paragraphs on right
-
-        // Try to put first paragraph
-        leftParas.push(paragraphs[0]);
-        rightParas.shift(); // Remove from right
-        let currentHeight = measureTextHeight(leftParas);
-
-        // If first paragraph can't fit, use image only on left layout
-        if (currentHeight > leftAvailableHeight) {
-          return {
-            type: 'image_only',
-            left_paras: null,
-            right_paras: paragraphs,
-            useSmallImage: useSmallImage
-          };
-        }
-
-        // Try to add more paragraphs to left
-        while (rightParas.length > 0) {
-          const nextPara = rightParas[0];
-          const tempParas = [...leftParas, nextPara];
-          const tempHeight = measureTextHeight(tempParas);
-
-          if (tempHeight <= leftAvailableHeight) {
-            leftParas.push(nextPara);
-            rightParas.shift();
-            currentHeight = tempHeight;
-          } else {
-            break; // Stop if next paragraph doesn't fit
+      // Calculate pages
+      function calculatePages(paragraphs, hasImage, useSmallImage) {
+        const pages = [];
+        
+        // No image case
+        if (!hasImage) {
+          let remainingParas = [...paragraphs];
+          
+          while (remainingParas.length > 0) {
+            const pageParas = [];
+            let currentHeight = 0;
+            const maxHeight = 820; // Container height
+            
+            for (let i = 0; i < remainingParas.length; i++) {
+              const tempParas = [...pageParas, remainingParas[i]];
+              const tempHeight = measureTextHeight(tempParas);
+              
+              if (tempHeight <= maxHeight) {
+                pageParas.push(remainingParas[i]);
+                currentHeight = tempHeight;
+              } else {
+                break;
+              }
+            }
+            
+            if (pageParas.length === 0 && remainingParas.length > 0) {
+              // Even a single paragraph doesn't fit, add it anyway
+              pageParas.push(remainingParas[0]);
+            }
+            
+            // Remove used paragraphs
+            remainingParas = remainingParas.slice(pageParas.length);
+            
+            pages.push({
+              type: 'text_only',
+              left_paras: pageParas,
+              right_paras: [],
+              useSmallImage: false
+            });
           }
+          
+          return pages;
         }
-
-        // If all paragraphs fit on left
-        if (rightParas.length === 0) {
-          // Consider balancing left and right
-          const midPoint = Math.ceil(leftParas.length / 2);
-          return {
+        
+        // With image case - use consistent layout for all pages
+        let remainingParas = [...paragraphs];
+        
+        while (remainingParas.length > 0) {
+          const pageData = {
             type: 'image_with_text',
-            left_paras: leftParas.slice(0, midPoint),
-            right_paras: leftParas.slice(midPoint),
+            left_paras: [],
+            right_paras: [],
             useSmallImage: useSmallImage
           };
+          
+          // Determine image dimensions based on selection
+          const imageHeight = useSmallImage ? 370 : 460;
+          const imageGap = 20;
+          const leftAvailableHeight = 820 - imageHeight - imageGap;
+          
+          // For all pages, try to put content on both sides
+          // First try to add paragraphs to left side
+          for (let i = 0; i < remainingParas.length; i++) {
+            const tempParas = [...pageData.left_paras, remainingParas[i]];
+            const tempHeight = measureTextHeight(tempParas);
+            
+            if (tempHeight <= leftAvailableHeight) {
+              pageData.left_paras.push(remainingParas[i]);
+            } else {
+              break;
+            }
+          }
+          
+          // Remove used paragraphs
+          remainingParas = remainingParas.slice(pageData.left_paras.length);
+          
+          // Add remaining paragraphs to right side
+          const rightAvailableHeight = 820;
+          
+          for (let i = 0; i < remainingParas.length; i++) {
+            const tempParas = [...pageData.right_paras, remainingParas[i]];
+            const tempHeight = measureTextHeight(tempParas);
+            
+            if (tempHeight <= rightAvailableHeight) {
+              pageData.right_paras.push(remainingParas[i]);
+            } else {
+              break;
+            }
+          }
+          
+          // Remove used paragraphs
+          remainingParas = remainingParas.slice(pageData.right_paras.length);
+          
+          // If no content was added to right side, balance the content
+          if (pageData.right_paras.length === 0 && pageData.left_paras.length > 1) {
+            // Move some content from left to right to balance the page
+            const midPoint = Math.ceil(pageData.left_paras.length / 2);
+            pageData.right_paras = pageData.left_paras.slice(midPoint);
+            pageData.left_paras = pageData.left_paras.slice(0, midPoint);
+            
+            // Put the moved content back to remaining paragraphs
+            remainingParas = [...pageData.right_paras, ...remainingParas];
+            pageData.right_paras = [];
+          }
+          
+          pages.push(pageData);
         }
-
-        // Left with image + text, right with text layout
-        return {
-          type: 'image_with_text',
-          left_paras: leftParas,
-          right_paras: rightParas,
-          useSmallImage: useSmallImage
-        };
+        
+        return pages;
       }
 
       // Render paragraph elements
@@ -531,24 +681,24 @@
         return container;
       }
 
-      // Render layout
-      function renderLayout(layout) {
+      // Render a single page
+      function renderPage(pageData) {
         // Create main container
         const container = document.createElement('div');
-        container.className = 'layout-container';
+        container.className = 'page active';
 
         // Determine image class based on size
-        const imageClass = layout.useSmallImage ? 'image-placeholder small' : 'image-placeholder';
+        const imageClass = pageData.useSmallImage ? 'image-placeholder small' : 'image-placeholder';
 
-        switch (layout.type) {
-          case 'no_image':
-            // No image layout: text split into two columns
+        switch (pageData.type) {
+          case 'text_only':
+            // Text only layout: text split into two columns
             const leftContainer1 = document.createElement('div');
             leftContainer1.className = 'left-container';
             
             const leftWrapper1 = document.createElement('div');
             leftWrapper1.className = 'content-wrapper';
-            leftWrapper1.appendChild(renderParagraphs(layout.left_paras, 820, true));
+            leftWrapper1.appendChild(renderParagraphs(pageData.left_paras, 820, true));
             leftContainer1.appendChild(leftWrapper1);
 
             const rightContainer1 = document.createElement('div');
@@ -556,15 +706,20 @@
             
             const rightWrapper1 = document.createElement('div');
             rightWrapper1.className = 'content-wrapper';
-            rightWrapper1.appendChild(renderParagraphs(layout.right_paras, 820, true));
+            rightWrapper1.appendChild(renderParagraphs(pageData.right_paras, 820, true));
             rightContainer1.appendChild(rightWrapper1);
 
-            container.appendChild(leftContainer1);
-            container.appendChild(rightContainer1);
+            // 创建布局容器并添加左右容器
+            const layoutContainer1 = document.createElement('div');
+            layoutContainer1.className = 'layout-container';
+            layoutContainer1.appendChild(leftContainer1);
+            layoutContainer1.appendChild(rightContainer1);
+            
+            container.appendChild(layoutContainer1);
             break;
 
-          case 'image_only':
-            // Image on left, text on right layout
+          case 'image_with_text':
+            // Image + text on left, text on right layout
             const leftContainer2 = document.createElement('div');
             leftContainer2.className = 'left-container';
             
@@ -572,11 +727,18 @@
             leftWrapper2.className = 'content-wrapper';
             
             // Create image container for centering
-            const imageContainer2 = document.createElement('div');
-            imageContainer2.className = 'image-container';
-            imageContainer2.innerHTML = `<div class="${imageClass}">image</div>`;
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'image-container';
+            imageContainer.innerHTML = `<div class="${imageClass}">image</div>`;
             
-            leftWrapper2.appendChild(imageContainer2);
+            leftWrapper2.appendChild(imageContainer);
+            
+            // Add text content if available
+            if (pageData.left_paras && pageData.left_paras.length > 0) {
+              const textHeight = 820 - (pageData.useSmallImage ? 370 : 460) - 20;
+              leftWrapper2.appendChild(renderParagraphs(pageData.left_paras, textHeight, true));
+            }
+            
             leftContainer2.appendChild(leftWrapper2);
 
             const rightContainer2 = document.createElement('div');
@@ -584,83 +746,22 @@
             
             const rightWrapper2 = document.createElement('div');
             rightWrapper2.className = 'content-wrapper';
-            rightWrapper2.appendChild(renderParagraphs(layout.right_paras, 820, true));
+            rightWrapper2.appendChild(renderParagraphs(pageData.right_paras, 820, true));
             rightContainer2.appendChild(rightWrapper2);
 
-            container.appendChild(leftContainer2);
-            container.appendChild(rightContainer2);
-            break;
-
-          case 'image_with_text':
-            // Image + text on left, text on right layout
-            const leftContainer3 = document.createElement('div');
-            leftContainer3.className = 'left-container';
+            // 创建布局容器并添加左右容器
+            const layoutContainer2 = document.createElement('div');
+            layoutContainer2.className = 'layout-container';
+            layoutContainer2.appendChild(leftContainer2);
+            layoutContainer2.appendChild(rightContainer2);
             
-            const leftWrapper3 = document.createElement('div');
-            leftWrapper3.className = 'content-wrapper';
-            
-            // Create image container for centering
-            const imageContainer3 = document.createElement('div');
-            imageContainer3.className = 'image-container';
-            imageContainer3.innerHTML = `<div class="${imageClass}">image</div>`;
-            
-            leftWrapper3.appendChild(imageContainer3);
-            
-            // Add text content if available
-            if (layout.left_paras && layout.left_paras.length > 0) {
-              const textHeight = 820 - (layout.useSmallImage ? 370 : 460) - 20;
-              leftWrapper3.appendChild(renderParagraphs(layout.left_paras, textHeight, true));
-            }
-            
-            leftContainer3.appendChild(leftWrapper3);
-
-            const rightContainer3 = document.createElement('div');
-            rightContainer3.className = 'right-container';
-            
-            const rightWrapper3 = document.createElement('div');
-            rightWrapper3.className = 'content-wrapper';
-            rightWrapper3.appendChild(renderParagraphs(layout.right_paras, 820, true));
-            rightContainer3.appendChild(rightWrapper3);
-
-            container.appendChild(leftContainer3);
-            container.appendChild(rightContainer3);
+            container.appendChild(layoutContainer2);
             break;
         }
 
         // Update display area
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
-        
-        // 检查是否需要调整对齐方式
-        adjustAlignment();
-      }
-      
-      // 调整对齐方式
-      function adjustAlignment() {
-        const leftContainers = document.querySelectorAll('.left-container');
-        const rightContainers = document.querySelectorAll('.right-container');
-        
-        leftContainers.forEach(container => {
-          const wrapper = container.querySelector('.content-wrapper');
-          if (wrapper && wrapper.scrollHeight <= 820) {
-            // 内容未超出，保持居中
-            container.style.justifyContent = 'center';
-          } else {
-            // 内容超出，顶部对齐
-            container.style.justifyContent = 'flex-start';
-          }
-        });
-        
-        rightContainers.forEach(container => {
-          const wrapper = container.querySelector('.content-wrapper');
-          if (wrapper && wrapper.scrollHeight <= 820) {
-            // 内容未超出，保持居中
-            container.style.justifyContent = 'center';
-          } else {
-            // 内容超出，顶部对齐
-            container.style.justifyContent = 'flex-start';
-          }
-        });
       }
       
       // Generate initial layout on page load
