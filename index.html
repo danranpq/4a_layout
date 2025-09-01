@@ -56,16 +56,17 @@
       flex-direction: column;
       /* 添加灰色虚线边框，不占空间 */
       border: 1px dashed #ccc;
+      position: relative;
     }
 
     /* 居中对齐 */
     .left-container {
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
     }
 
     .right-container {
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
     }
 
@@ -208,6 +209,18 @@
     
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+    
+    /* 超出指示器 */
+    .overflow-indicator {
+      position: absolute;
+      bottom: -25px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: #ff4d4f;
+      font-size: 16px;
+      font-family: sans-serif;
     }
   </style>
 </head>
@@ -420,10 +433,11 @@
 
         // Try to distribute paragraphs to left and right
         const leftParas = [];
-        const rightParas = [];
+        const rightParas = [...paragraphs]; // Start with all paragraphs on right
 
         // Try to put first paragraph
         leftParas.push(paragraphs[0]);
+        rightParas.shift(); // Remove from right
         let currentHeight = measureTextHeight(leftParas);
 
         // If first paragraph can't fit, use image only on left layout
@@ -436,23 +450,23 @@
           };
         }
 
-        // Try to add more paragraphs
-        for (let i = 1; i < paragraphs.length; i++) {
-          const tempParas = [...leftParas, paragraphs[i]];
+        // Try to add more paragraphs to left
+        while (rightParas.length > 0) {
+          const nextPara = rightParas[0];
+          const tempParas = [...leftParas, nextPara];
           const tempHeight = measureTextHeight(tempParas);
 
           if (tempHeight <= leftAvailableHeight) {
-            leftParas.push(paragraphs[i]);
+            leftParas.push(nextPara);
+            rightParas.shift();
             currentHeight = tempHeight;
           } else {
-            // Put remaining paragraphs on right
-            rightParas.push(...paragraphs.slice(i));
-            break;
+            break; // Stop if next paragraph doesn't fit
           }
         }
 
         // If all paragraphs fit on left
-        if (rightParas.length === 0 && leftParas.length === paragraphs.length) {
+        if (rightParas.length === 0) {
           // Consider balancing left and right
           const midPoint = Math.ceil(leftParas.length / 2);
           return {
@@ -473,7 +487,7 @@
       }
 
       // Render paragraph elements
-      function renderParagraphs(paragraphs) {
+      function renderParagraphs(paragraphs, containerHeight) {
         if (!paragraphs || paragraphs.length === 0) return null;
 
         const container = document.createElement('div');
@@ -485,6 +499,15 @@
           paraElement.textContent = para;
           container.appendChild(paraElement);
         });
+
+        // Check if content overflows
+        const contentHeight = container.scrollHeight;
+        if (contentHeight > containerHeight) {
+          const indicator = document.createElement('div');
+          indicator.className = 'overflow-indicator';
+          indicator.textContent = 'Content exceeds container';
+          container.appendChild(indicator);
+        }
 
         return container;
       }
@@ -503,11 +526,11 @@
             // No image layout: text split into two columns
             const leftContainer1 = document.createElement('div');
             leftContainer1.className = 'left-container';
-            leftContainer1.appendChild(renderParagraphs(layout.left_paras));
+            leftContainer1.appendChild(renderParagraphs(layout.left_paras, 820));
 
             const rightContainer1 = document.createElement('div');
             rightContainer1.className = 'right-container';
-            rightContainer1.appendChild(renderParagraphs(layout.right_paras));
+            rightContainer1.appendChild(renderParagraphs(layout.right_paras, 820));
 
             container.appendChild(leftContainer1);
             container.appendChild(rightContainer1);
@@ -527,7 +550,7 @@
 
             const rightContainer2 = document.createElement('div');
             rightContainer2.className = 'right-container';
-            rightContainer2.appendChild(renderParagraphs(layout.right_paras));
+            rightContainer2.appendChild(renderParagraphs(layout.right_paras, 820));
 
             container.appendChild(leftContainer2);
             container.appendChild(rightContainer2);
@@ -547,12 +570,13 @@
             
             // Add text content if available
             if (layout.left_paras && layout.left_paras.length > 0) {
-              leftContainer3.appendChild(renderParagraphs(layout.left_paras));
+              const textHeight = 820 - (layout.useSmallImage ? 370 : 460) - 20;
+              leftContainer3.appendChild(renderParagraphs(layout.left_paras, textHeight));
             }
 
             const rightContainer3 = document.createElement('div');
             rightContainer3.className = 'right-container';
-            rightContainer3.appendChild(renderParagraphs(layout.right_paras));
+            rightContainer3.appendChild(renderParagraphs(layout.right_paras, 820));
 
             container.appendChild(leftContainer3);
             container.appendChild(rightContainer3);
