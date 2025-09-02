@@ -7,7 +7,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Text and Image Layout Generator with Pagination</title>
+  <title>Batch Text Layout Generator</title>
+
   <style>
     /* Import custom font */
     @font-face {
@@ -17,7 +18,6 @@
       font-style: normal;
     }
 
-    /* Center the main heading */
     h1 {
       text-align: center;
       margin: 20px 0;
@@ -26,21 +26,23 @@
 
     body {
       margin: 0;
-      padding: 0;
+      padding: 20px;
       overflow-x: auto;
       font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
     }
 
     .content-area {
       width: 1800px;
       height: 920px;
-      margin: 0 auto;
+      margin: 20px auto;
       position: relative;
       border: 1px solid #ccc;
       overflow: hidden;
       background-color: #fff;
       box-sizing: border-box;
       padding: 50px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     .layout-container {
@@ -48,13 +50,13 @@
       height: 820px;
       box-sizing: border-box;
       display: flex;
-      gap: 100px; /* 左右容器间隔100px */
+      gap: 100px;
       position: relative;
     }
 
     .left-container,
     .right-container {
-      width: 800px; /* (1700 - 100) / 2 = 800px */
+      width: 800px;
       height: 820px;
       box-sizing: border-box;
       display: flex;
@@ -63,7 +65,6 @@
       position: relative;
     }
 
-    /* 居中对齐 */
     .left-container {
       justify-content: center;
       align-items: center;
@@ -90,11 +91,7 @@
       align-items: center;
       font-size: 24px;
       color: #999;
-    }
-
-    .image-placeholder.small {
-      width: 370px;
-      height: 370px;
+      border: 2px solid #ddd;
     }
 
     .text-area {
@@ -107,7 +104,6 @@
       word-wrap: break-word;
     }
 
-    /* 段落基础样式 */
     .paragraph {
       font-family: 'URWGroteskWid-Lig', sans-serif;
       font-size: 41px;
@@ -127,9 +123,10 @@
       width: 1800px;
       margin: 20px auto;
       padding: 20px;
-      background-color: #f5f5f5;
-      border-radius: 5px;
+      background-color: #fff;
+      border-radius: 8px;
       box-sizing: border-box;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .row {
@@ -143,37 +140,36 @@
 
     textarea {
       width: 100%;
-      height: 400px;
-      padding: 10px;
+      height: 200px;
+      padding: 12px;
       box-sizing: border-box;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.5;
       font-family: monospace;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
     }
 
     button {
       padding: 10px 20px;
-      font-size: 16px;
+      font-size: 14px;
       margin-top: 10px;
       cursor: pointer;
       border: none;
       border-radius: 4px;
+      transition: background-color 0.3s;
     }
 
-    #generateBtn {
+    #generateBtn, #processBatchBtn, #downloadBtn {
       background-color: #165DFF;
       color: white;
     }
 
-    #generateBtn:hover {
+    #generateBtn:hover, #processBatchBtn:hover, #downloadBtn:hover {
       background-color: #0E42CC;
     }
 
-    .checkbox-group {
-      margin-bottom: 20px;
-    }
-
-    /* Hidden measurement container - for accurate text height calculation */
     #measureContainer {
       position: absolute;
       visibility: hidden;
@@ -185,37 +181,21 @@
       top: -1000px;
     }
 
-    #measureContainer .paragraph {
-      font-family: 'URWGroteskWid-Lig', sans-serif;
-      font-size: 41px;
-      font-weight: normal;
-      line-height: 50px;
-      letter-spacing: 0px;
-      word-wrap: break-word;
-      margin-bottom: 30px;
-    }
-
-    #measureContainer .paragraph:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* Loading indicator */
     .loading {
       display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,.3);
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
       border-radius: 50%;
       border-top-color: white;
       animation: spin 1s ease-in-out infinite;
       margin-right: 8px;
     }
-    
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    
-    /* 超出指示器 */
+
     .overflow-indicator {
       position: absolute;
       bottom: -25px;
@@ -223,76 +203,247 @@
       width: 100%;
       text-align: center;
       color: #ff4d4f;
-      font-size: 16px;
+      font-size: 14px;
       font-family: sans-serif;
     }
-    
-    /* 内容包装器 - 用于居中内容 */
+
     .content-wrapper {
       width: 100%;
       max-height: 100%;
       overflow: hidden;
       position: relative;
     }
-    
-    /* 文本容器 - 用于控制文本溢出 */
+
     .text-container {
       width: 100%;
       position: relative;
     }
-    
-    /* 分页控件 */
+
     .pagination {
       display: flex;
       justify-content: center;
-      margin-top: 20px;
+      margin-top: 15px;
       gap: 10px;
     }
-    
+
     .pagination button {
-      padding: 8px 16px;
+      padding: 6px 12px;
       background-color: #f0f0f0;
       color: #333;
       border: 1px solid #ccc;
+      font-size: 12px;
     }
-    
-    .pagination button.active {
-      background-color: #165DFF;
-      color: white;
-      border-color: #165DFF;
-    }
-    
+
     .pagination button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-    
+
     .page-info {
       text-align: center;
-      margin-top: 10px;
-      font-size: 16px;
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
     }
-    
-    /* 页面容器 */
+
     .page {
       display: none;
       width: 100%;
       height: 100%;
     }
-    
+
     .page.active {
       display: flex;
     }
+
+    /* Batch processing styles */
+    .batch-section {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 6px;
+      border: 1px solid #eee;
+    }
+
+    .file-upload {
+      margin-bottom: 15px;
+    }
+
+    .file-upload input {
+      margin-top: 5px;
+    }
+
+    .progress-container {
+      margin: 15px 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 16px;
+      background-color: #f0f0f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: #165DFF;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      text-align: center;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .article-navigation {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+      justify-content: center;
+    }
+
+    .article-info {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .review-section {
+      margin: 15px 0;
+      padding: 12px;
+      background-color: #e6f7ff;
+      border-radius: 6px;
+      border: 1px solid #91d5ff;
+    }
+
+    .review-options {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .review-options label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .batch-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .settings-section {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f0f9eb;
+      border-radius: 6px;
+      border: 1px solid #b7eb8f;
+    }
+
+    .settings-section label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .settings-section input {
+      width: 60px;
+      padding: 4px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .success-message {
+      color: #52c41a;
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .error-message {
+      color: #ff4d4f;
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .preview-info {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+      font-style: italic;
+    }
+
+    .process-complete-text {
+      color: #52c41a;
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+
+    /* Tab容器样式：控制按钮整体位置，与原页面宽度对齐 */
+    .tab-container {
+      width: 1800px; 
+      margin: 0 auto; 
+      padding-top: 20px; 
+    }
+
+    .tab-btn {
+      padding: 10px 25px;
+      font-size: 16px;
+      border: none; 
+      border-radius: 4px 4px 0 0; 
+      cursor: pointer; 
+      background-color: #f0f0f0; 
+      transition: background-color 0.3s; 
+      margin-right: 5px; 
+    }
+
+
+    .tab-btn.active {
+      background-color: #165DFF; 
+      color: white; 
+      font-weight: 500;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background-color: #e0e0e0; 
+    }
+
   </style>
+
+
+ 
 </head>
 
 <body>
-  <h1>Text and Image Layout Generator with Pagination</h1>
+
+  <!-- Tab按钮容器：包裹两个切换按钮 -->
+  <div class="tab-container">
+    <button class="tab-btn active" id="batchModifyBtn">batch modify</button>
+    <button class="tab-btn" id="smallModifyBtn">small modify</button>
+  </div>
+
+  <h1>Batch Text Layout Generator</h1>
 
   <!-- Display area -->
   <div class="content-area">
     <div id="layoutDisplay" class="layout-container">
-      Please enter text and click "Generate Layout" to view the result
+      Please upload Excel file and process batch to view results
     </div>
   </div>
 
@@ -307,72 +458,154 @@
   <div class="control-panel">
     <div class="row">
       <div class="column">
-        <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">Ming got off the school bus and walked home next to Mum. Mrs Green had set the class a project for homework and Ming was cross.
-"Mum, it's not fair," Ming complained. "Mrs Green has set us a project for homework, and we have to finish it by Monday. I wanted to spend the weekend playing with my toys or going to the park, not learning about dinosaurs!"
-"Sorry," said Mum. "You will need to work on your project."
-Ming told Mum all about the project. Everyone had to choose an unusual animal to write about.
-"The only unusual animal I can think of is a dinosaur and I don't like dinosaurs," he said sadly. "I would rather learn to play football!" Ming added.
-"I know, we can go to the zoo!" said Mum.
-On Saturday morning, Mum, Dad and Ming got into the car. Then they went to the zoo.
-First, they saw giant pandas. Then they saw lions and tigers. After lunch, they saw the penguins.
-Ming woke up early on Sunday morning. He wanted to work on his project. Ming worked very hard all morning.
-"We can go to the park after lunch," Mum told Ming.
-"No, thank you. I want to spend more time on my project. I can't wait to show it to Mrs Green. I didn't know that there are birds that cannot fly. Penguins are so cool."
-Ming was the first student in the classroom on Monday morning!</textarea>
+        <label for="textInput">Current Passage Preview:</label>
+        <textarea id="textInput" readonly placeholder="Passage content will appear here after processing"></textarea>
+        
+        <div class="preview-info">
+          Layout preview updates automatically when navigating between articles
+        </div>
+
+        <!-- Settings section -->
+        <div class="settings-section">
+          <label>
+            Maximum Pages to Extract:
+            <input type="number" id="maxPages" value="10" min="1" max="20">
+          </label>
+        </div>
       </div>
+      
       <div class="column">
-        <div class="checkbox-group">
-          <label>
-            <input type="checkbox" id="hasImage" checked> Include Image
-          </label>
+        <!-- Batch processing section -->
+        <div class="batch-section">
+          <h3 style="margin-top: 0;">Batch Processing</h3>
+          
+          <div class="file-upload">
+            <label for="excelFile">Upload Excel File (.xlsx):</label>
+            <input type="file" id="excelFile" accept=".xlsx" />
+            <div style="font-size: 11px; color: #666; margin-top: 3px;">
+              Required columns: id, passage
+            </div>
+          </div>
+          
+          <div class="progress-container hidden" id="progressContainer">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-text" id="progressText">Processing 0/0</div>
+          </div>
+          
+          <div class="article-navigation hidden" id="articleNavigation">
+            <button id="prevArticle">&lt; Prev</button>
+            <span class="article-info" id="articleInfo">Article 1 of 0</span>
+            <button id="nextArticle">Next &gt;</button>
+          </div>
+
+          <!-- Review section -->
+          <div class="review-section hidden" id="reviewSection">
+            <label style="font-weight: bold; display: block; margin-bottom: 8px;">
+              Review this layout:
+            </label>
+            <div class="review-options">
+              <label>
+                <input type="radio" name="review" value="yes"> Yes - Layout is good
+              </label>
+              <label>
+                <input type="radio" name="review" value="no"> No - Needs adjustment
+              </label>
+            </div>
+          </div>
+          
+          <div class="batch-controls">
+            <button id="processBatchBtn" disabled>
+              <span id="processButtonText">Process Batch</span>
+              <span id="batchLoadingIndicator" class="loading" style="display:none;"></span>
+            </button>
+            <button id="downloadBtn" class="hidden">Download Results</button>
+          </div>
+          
+          <div id="batchStatus" class="hidden"></div>
+          
+          <!-- 处理完成提示文本 -->
+          <div id="processCompleteText" class="process-complete-text hidden">
+            Batch processing completed successfully! Use navigation buttons to review each article.
+          </div>
         </div>
-        <div class="checkbox-group" id="imageSizeGroup">
-          <label>
-            <input type="checkbox" id="useSmallImage"> Use small image
-          </label>
-        </div>
-        <button id="generateBtn">
-          <span id="buttonText">Generate Layout</span>
-          <span id="loadingIndicator" class="loading" style="display:none;"></span>
-        </button>
       </div>
     </div>
   </div>
 
-  <!-- Hidden measurement container - key for accurate text height calculation -->
+  <!-- Hidden measurement container -->
   <div id="measureContainer"></div>
 
+  <!-- Include SheetJS library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
   <script>
-    // Initialize page
     document.addEventListener('DOMContentLoaded', function () {
       // Set fixed zoom to 33%
       document.body.style.zoom = "33%";
 
+          
+      // Tab 按钮
+      // 1. 获取Tab按钮（需确保HTML中已添加Tab按钮元素）
+      const batchModifyBtn = document.getElementById('batchModifyBtn');
+      const smallModifyBtn = document.getElementById('smallModifyBtn');
+
+      // 2. batch modify按钮点击：跳转到子页面+切换样式
+      batchModifyBtn.addEventListener('click', function() {
+        batchModifyBtn.classList.add('active');
+        smallModifyBtn.classList.remove('active');
+       
+      });
+
+      // 3. small modify按钮点击：跳转到子页面+切换样式
+      smallModifyBtn.addEventListener('click', function() {
+        smallModifyBtn.classList.add('active');
+        batchModifyBtn.classList.remove('active');
+        window.location.href = 'small_modify.html'; // 子页面文件名需和实际一致
+        
+      });
+      
+
       // Get DOM elements
-      const generateBtn = document.getElementById('generateBtn');
       const textInput = document.getElementById('textInput');
-      const hasImage = document.getElementById('hasImage');
-      const useSmallImage = document.getElementById('useSmallImage');
-      const imageSizeGroup = document.getElementById('imageSizeGroup');
       const layoutDisplay = document.getElementById('layoutDisplay');
       const measureContainer = document.getElementById('measureContainer');
-      const buttonText = document.getElementById('buttonText');
-      const loadingIndicator = document.getElementById('loadingIndicator');
       const pagination = document.getElementById('pagination');
       const prevPageBtn = document.getElementById('prevPage');
       const nextPageBtn = document.getElementById('nextPage');
       const pageInfo = document.getElementById('pageInfo');
+      const maxPagesInput = document.getElementById('maxPages');
       
-      // Track font loading state
+      // Batch processing elements
+      const excelFile = document.getElementById('excelFile');
+      const processBatchBtn = document.getElementById('processBatchBtn');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      const articleNavigation = document.getElementById('articleNavigation');
+      const prevArticleBtn = document.getElementById('prevArticle');
+      const nextArticleBtn = document.getElementById('nextArticle');
+      const articleInfo = document.getElementById('articleInfo');
+      const batchStatus = document.getElementById('batchStatus');
+      const processButtonText = document.getElementById('processButtonText');
+      const batchLoadingIndicator = document.getElementById('batchLoadingIndicator');
+      const reviewSection = document.getElementById('reviewSection');
+      const reviewRadios = document.querySelectorAll('input[name="review"]');
+      const processCompleteText = document.getElementById('processCompleteText');
+      
+      // Variables
       let fontLoaded = false;
       let currentPage = 0;
       let totalPages = 0;
       let pagesData = [];
+      let batchData = [];
+      let processedData = [];
+      let currentArticleIndex = 0;
       
       // Check if custom font is available
       function checkFontLoaded() {
-        // Create test elements
         const testElement = document.createElement('span');
         testElement.style.position = 'absolute';
         testElement.style.visibility = 'hidden';
@@ -386,27 +619,23 @@ Ming was the first student in the classroom on Monday morning!</textarea>
         document.body.appendChild(testElement);
         document.body.appendChild(referenceElement);
         
-        // If widths are different, font is loaded
         const isLoaded = testElement.offsetWidth !== referenceElement.offsetWidth;
         
-        // Clean up
         document.body.removeChild(testElement);
         document.body.removeChild(referenceElement);
         
         return isLoaded;
       }
       
-      // Wait for font to load with timeout
+      // Wait for font to load
       function waitForFontLoad() {
         return new Promise((resolve) => {
-          // Check immediately
           if (checkFontLoaded()) {
             fontLoaded = true;
             resolve(true);
             return;
           }
           
-          // Check periodically
           const interval = setInterval(() => {
             if (checkFontLoaded()) {
               clearInterval(interval);
@@ -415,43 +644,196 @@ Ming was the first student in the classroom on Monday morning!</textarea>
             }
           }, 100);
           
-          // Timeout after 3 seconds
           setTimeout(() => {
             clearInterval(interval);
-            console.warn('Font did not load within 3 seconds, using fallback');
             resolve(false);
-            fontLoaded = true; // 强制设置为已加载，即使字体未加载也继续
+            fontLoaded = true;
           }, 3000);
         });
       }
 
-      // Toggle image size option visibility based on include image checkbox
-      hasImage.addEventListener('change', function () {
-        imageSizeGroup.style.display = this.checked ? 'block' : 'none';
+      // Excel file upload handler
+      excelFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        processButtonText.textContent = 'Processing...';
+        batchLoadingIndicator.style.display = 'inline-block';
+        processBatchBtn.disabled = true;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+            
+            batchData = jsonData.map((row, index) => ({
+              id: row.id || index + 1,
+              passage: row.passage || '',
+              originalData: row
+            }));
+            
+            processButtonText.textContent = `Process ${batchData.length} Articles`;
+            processBatchBtn.disabled = false;
+            batchStatus.innerHTML = `<div class="success-message">Loaded ${batchData.length} articles successfully</div>`;
+            batchStatus.classList.remove('hidden');
+          } catch (error) {
+            console.error('Error reading Excel file:', error);
+            batchStatus.innerHTML = `<div class="error-message">Error reading Excel file: ${error.message}</div>`;
+            batchStatus.classList.remove('hidden');
+          } finally {
+            batchLoadingIndicator.style.display = 'none';
+          }
+        };
+        reader.readAsArrayBuffer(file);
       });
 
-      // Bind generate button event
-      generateBtn.addEventListener('click', async function() {
-        // Show loading state
-        buttonText.textContent = 'Generating...';
-        loadingIndicator.style.display = 'inline-block';
-        generateBtn.disabled = true;
+      // Process batch button handler
+      processBatchBtn.addEventListener('click', async function() {
+        if (batchData.length === 0) return;
         
-        try {
-          // Ensure font is loaded before generating layout
-          if (!fontLoaded) {
-            await waitForFontLoad();
+        const maxPages = parseInt(maxPagesInput.value) || 10;
+        
+        processButtonText.textContent = 'Processing...';
+        batchLoadingIndicator.style.display = 'inline-block';
+        processBatchBtn.disabled = true;
+        progressContainer.classList.remove('hidden');
+        
+        processedData = [];
+        
+        for (let i = 0; i < batchData.length; i++) {
+          // Update progress
+          const progress = ((i + 1) / batchData.length) * 100;
+          progressFill.style.width = `${progress}%`;
+          progressText.textContent = `Processing ${i + 1}/${batchData.length}`;
+          
+          // Process current article
+          const article = batchData[i];
+          const paragraphs = article.passage.split(/\n+/)
+            .filter(para => para.trim() !== '')
+            .map(para => para.replace(/^- /, '').trim());
+          
+          const pages = calculatePages(paragraphs, true, false);
+          
+          // Extract page contents (up to maxPages)
+          const pageContents = [];
+          for (let p = 0; p < Math.min(pages.length, maxPages); p++) {
+            const page = pages[p];
+            let content = '';
+            if (page.left_paras.length > 0) {
+              content += page.left_paras.join('\n') + '\n';
+            }
+            if (page.right_paras.length > 0) {
+              content += page.right_paras.join('\n');
+            }
+            pageContents.push(content.trim());
           }
-          generateLayout();
-        } finally {
-          // Restore button state
-          buttonText.textContent = 'Generate Layout';
-          loadingIndicator.style.display = 'none';
-          generateBtn.disabled = false;
+          
+          // Fill remaining pages with empty strings
+          while (pageContents.length < maxPages) {
+            pageContents.push('');
+          }
+          
+          processedData.push({
+            ...article.originalData,
+            total_pages: Math.min(pages.length, maxPages),
+            review: '',
+            ...pageContents.reduce((acc, content, index) => {
+              acc[`page_${index + 1}`] = content;
+              return acc;
+            }, {})
+          });
+          
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        
+        // Complete processing
+        progressFill.style.width = '100%';
+        progressText.textContent = `Completed ${batchData.length}/${batchData.length}`;
+        
+        // Show first article
+        currentArticleIndex = 0;
+        showArticle(currentArticleIndex);
+        articleNavigation.classList.remove('hidden');
+        reviewSection.classList.remove('hidden');
+        downloadBtn.classList.remove('hidden');
+        processCompleteText.classList.remove('hidden');
+        
+        // 隐藏处理按钮，显示完成文本
+        processBatchBtn.style.display = 'none';
+        processButtonText.textContent = 'Process Complete';
+        batchLoadingIndicator.style.display = 'none';
+        batchStatus.innerHTML = `<div class="success-message">Processed ${batchData.length} articles successfully</div>`;
+      });
+
+      // Article navigation
+      prevArticleBtn.addEventListener('click', () => {
+        if (currentArticleIndex > 0) {
+          saveReview();
+          showArticle(currentArticleIndex - 1);
         }
       });
 
-      // Pagination event handlers
+      nextArticleBtn.addEventListener('click', () => {
+        if (currentArticleIndex < processedData.length - 1) {
+          saveReview();
+          showArticle(currentArticleIndex + 1);
+        }
+      });
+
+      // Save review selection
+      function saveReview() {
+        const selectedReview = document.querySelector('input[name="review"]:checked');
+        if (selectedReview) {
+          processedData[currentArticleIndex].review = selectedReview.value;
+        }
+      }
+
+      // Review radio change handler
+      reviewRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          processedData[currentArticleIndex].review = this.value;
+        });
+      });
+
+      // Show specific article
+      function showArticle(index) {
+        currentArticleIndex = index;
+        const article = processedData[index];
+        
+        // Update text area and generate layout
+        textInput.value = article.passage;
+        generateLayout();
+        
+        // Update article info
+        articleInfo.textContent = `Article ${index + 1} of ${processedData.length} (ID: ${article.id})`;
+        
+        // Update navigation buttons
+        prevArticleBtn.disabled = index === 0;
+        nextArticleBtn.disabled = index === processedData.length - 1;
+        
+        // Update review selection
+        reviewRadios.forEach(radio => {
+          radio.checked = radio.value === article.review;
+        });
+      }
+
+      // Download results
+      downloadBtn.addEventListener('click', function() {
+        if (processedData.length === 0) return;
+        
+        saveReview();
+        
+        const worksheet = XLSX.utils.json_to_sheet(processedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Processed Layouts');
+        
+        XLSX.writeFile(workbook, 'processed_layouts_with_review.xlsx');
+      });
+
+      // Pagination handlers
       prevPageBtn.addEventListener('click', function() {
         if (currentPage > 0) {
           showPage(currentPage - 1);
@@ -467,34 +849,25 @@ Ming was the first student in the classroom on Monday morning!</textarea>
       // Show specific page
       function showPage(pageIndex) {
         currentPage = pageIndex;
-        
-        // Update pagination controls
         prevPageBtn.disabled = currentPage === 0;
         nextPageBtn.disabled = currentPage === totalPages - 1;
-        
-        // Update page info
         pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
-        
-        // Render the page
         renderPage(pagesData[currentPage]);
       }
 
-      // Main layout generation function
+      // Main layout generation
       function generateLayout() {
-        // Get input text and split into paragraphs
         const text = textInput.value.trim();
         if (!text) {
-          layoutDisplay.innerHTML = 'Please enter text content';
+          layoutDisplay.innerHTML = 'Please process batch to view content';
           return;
         }
 
-        // Split paragraphs by line breaks and clean up
         const paragraphs = text.split(/\n+/)
           .filter(para => para.trim() !== '')
-          .map(para => para.replace(/^- /, '').trim()); // Remove bullet points if present
+          .map(para => para.replace(/^- /, '').trim());
 
-        // Calculate layout pages
-        pagesData = calculatePages(paragraphs, hasImage.checked, useSmallImage.checked);
+        pagesData = calculatePages(paragraphs, true, false);
         totalPages = pagesData.length;
         
         if (totalPages === 0) {
@@ -504,10 +877,8 @@ Ming was the first student in the classroom on Monday morning!</textarea>
           return;
         }
         
-        // Show first page
         showPage(0);
         
-        // Show pagination controls if multiple pages
         if (totalPages > 1) {
           pagination.style.display = 'flex';
           pageInfo.style.display = 'block';
@@ -517,17 +888,13 @@ Ming was the first student in the classroom on Monday morning!</textarea>
         }
       }
 
-      // Accurately measure text height
+      // Measure text height
       function measureTextHeight(paragraphs) {
-        // Set text to measurement container
         measureContainer.innerHTML = '';
-
-        // Create paragraph container
         const container = document.createElement('div');
         container.className = 'text-area';
 
-        // Add all paragraphs
-        paragraphs.forEach((para, index) => {
+        paragraphs.forEach((para) => {
           const paraElement = document.createElement('div');
           paraElement.className = 'paragraph';
           paraElement.textContent = para;
@@ -535,60 +902,13 @@ Ming was the first student in the classroom on Monday morning!</textarea>
         });
 
         measureContainer.appendChild(container);
-        
-        // Force reflow before measuring
-        container.offsetHeight; // Trigger reflow
-        
-        // Get actual rendered height
-        const height = container.offsetHeight;
-        return height;
+        container.offsetHeight;
+        return container.offsetHeight;
       }
 
-      // Calculate pages - FIXED VERSION
+      // Calculate pages (image layout only)
       function calculatePages(paragraphs, hasImage, useSmallImage) {
         const pages = [];
-        
-        // No image case
-        if (!hasImage) {
-          let remainingParas = [...paragraphs];
-          
-          while (remainingParas.length > 0) {
-            const pageParas = [];
-            let currentHeight = 0;
-            const maxHeight = 820; // Container height
-            
-            for (let i = 0; i < remainingParas.length; i++) {
-              const tempParas = [...pageParas, remainingParas[i]];
-              const tempHeight = measureTextHeight(tempParas);
-              
-              if (tempHeight <= maxHeight) {
-                pageParas.push(remainingParas[i]);
-                currentHeight = tempHeight;
-              } else {
-                break;
-              }
-            }
-            
-            if (pageParas.length === 0 && remainingParas.length > 0) {
-              // Even a single paragraph doesn't fit, add it anyway
-              pageParas.push(remainingParas[0]);
-            }
-            
-            // Remove used paragraphs
-            remainingParas = remainingParas.slice(pageParas.length);
-            
-            pages.push({
-              type: 'text_only',
-              left_paras: pageParas,
-              right_paras: [],
-              useSmallImage: false
-            });
-          }
-          
-          return pages;
-        }
-        
-        // With image case
         let remainingParas = [...paragraphs];
         
         while (remainingParas.length > 0) {
@@ -596,15 +916,13 @@ Ming was the first student in the classroom on Monday morning!</textarea>
             type: 'image_with_text',
             left_paras: [],
             right_paras: [],
-            useSmallImage: useSmallImage
+            useSmallImage: false
           };
           
-          // Determine image dimensions based on selection
-          const imageHeight = useSmallImage ? 370 : 460;
+          const imageHeight = 460;
           const imageGap = 20;
           const leftAvailableHeight = 820 - imageHeight - imageGap;
           
-          // Special case: if only one paragraph remains, put it on the right side
           if (remainingParas.length === 1) {
             pageData.right_paras = [remainingParas[0]];
             remainingParas = [];
@@ -612,7 +930,6 @@ Ming was the first student in the classroom on Monday morning!</textarea>
             continue;
           }
           
-          // First try to add paragraphs to left side (under image)
           for (let i = 0; i < remainingParas.length; i++) {
             const tempParas = [...pageData.left_paras, remainingParas[i]];
             const tempHeight = measureTextHeight(tempParas);
@@ -624,10 +941,8 @@ Ming was the first student in the classroom on Monday morning!</textarea>
             }
           }
           
-          // Remove used paragraphs from left side
           remainingParas = remainingParas.slice(pageData.left_paras.length);
           
-          // Add paragraphs to right side
           const rightAvailableHeight = 820;
           
           for (let i = 0; i < remainingParas.length; i++) {
@@ -641,13 +956,9 @@ Ming was the first student in the classroom on Monday morning!</textarea>
             }
           }
           
-          // Remove used paragraphs from right side
           remainingParas = remainingParas.slice(pageData.right_paras.length);
           
-          // If no content was added to right side and left side has content,
-          // try to balance by moving some content from left to right
           if (pageData.right_paras.length === 0 && pageData.left_paras.length > 1) {
-            // Find the optimal split point
             let splitIndex = 0;
             
             for (let i = 1; i < pageData.left_paras.length; i++) {
@@ -657,23 +968,18 @@ Ming was the first student in the classroom on Monday morning!</textarea>
               const leftHeight = measureTextHeight(leftPart);
               const rightHeight = measureTextHeight(rightPart);
               
-              // Check if both parts fit in their respective containers
               if (leftHeight <= leftAvailableHeight && rightHeight <= rightAvailableHeight) {
                 splitIndex = i;
                 break;
               }
             }
             
-            // If we found a valid split, move content to right side
             if (splitIndex > 0) {
               pageData.right_paras = pageData.left_paras.slice(splitIndex);
               pageData.left_paras = pageData.left_paras.slice(0, splitIndex);
-            } else {
-              // If no split found, move all content to right side for the last paragraph
-              if (remainingParas.length === 0) {
-                pageData.right_paras = [...pageData.left_paras];
-                pageData.left_paras = [];
-              }
+            } else if (remainingParas.length === 0) {
+              pageData.right_paras = [...pageData.left_paras];
+              pageData.left_paras = [];
             }
           }
           
@@ -683,7 +989,7 @@ Ming was the first student in the classroom on Monday morning!</textarea>
         return pages;
       }
 
-      // Render paragraph elements
+      // Render paragraphs
       function renderParagraphs(paragraphs, containerHeight, isOverflow = false) {
         if (!paragraphs || paragraphs.length === 0) return null;
 
@@ -697,7 +1003,6 @@ Ming was the first student in the classroom on Monday morning!</textarea>
           container.appendChild(paraElement);
         });
 
-        // Check if content overflows
         const contentHeight = container.scrollHeight;
         if (contentHeight > containerHeight && isOverflow) {
           const indicator = document.createElement('div');
@@ -709,98 +1014,48 @@ Ming was the first student in the classroom on Monday morning!</textarea>
         return container;
       }
 
-      // Render a single page
+      // Render single page
       function renderPage(pageData) {
-        // Create main container
         const container = document.createElement('div');
         container.className = 'page active';
 
-        // Determine image class based on size
-        const imageClass = pageData.useSmallImage ? 'image-placeholder small' : 'image-placeholder';
-
-        switch (pageData.type) {
-          case 'text_only':
-            // Text only layout: text split into two columns
-            const leftContainer1 = document.createElement('div');
-            leftContainer1.className = 'left-container';
-            
-            const leftWrapper1 = document.createElement('div');
-            leftWrapper1.className = 'content-wrapper';
-            leftWrapper1.appendChild(renderParagraphs(pageData.left_paras, 820, true));
-            leftContainer1.appendChild(leftWrapper1);
-
-            const rightContainer1 = document.createElement('div');
-            rightContainer1.className = 'right-container';
-            
-            const rightWrapper1 = document.createElement('div');
-            rightWrapper1.className = 'content-wrapper';
-            rightWrapper1.appendChild(renderParagraphs(pageData.right_paras, 820, true));
-            rightContainer1.appendChild(rightWrapper1);
-
-            // 创建布局容器并添加左右容器
-            const layoutContainer1 = document.createElement('div');
-            layoutContainer1.className = 'layout-container';
-            layoutContainer1.appendChild(leftContainer1);
-            layoutContainer1.appendChild(rightContainer1);
-            
-            container.appendChild(layoutContainer1);
-            break;
-
-          case 'image_with_text':
-            // Image + text on left, text on right layout
-            const leftContainer2 = document.createElement('div');
-            leftContainer2.className = 'left-container';
-            
-            const leftWrapper2 = document.createElement('div');
-            leftWrapper2.className = 'content-wrapper';
-            
-            // Only show image if there's content on left side
-            if (pageData.left_paras && pageData.left_paras.length > 0) {
-              // Create image container for centering
-              const imageContainer = document.createElement('div');
-              imageContainer.className = 'image-container';
-              imageContainer.innerHTML = `<div class="${imageClass}">image</div>`;
-              
-              leftWrapper2.appendChild(imageContainer);
-              
-              // Add text content
-              const textHeight = 820 - (pageData.useSmallImage ? 370 : 460) - 20;
-              leftWrapper2.appendChild(renderParagraphs(pageData.left_paras, textHeight, true));
-            } else {
-              // If no content on left, just show centered image
-              leftContainer2.style.justifyContent = 'center';
-              leftWrapper2.innerHTML = `<div class="${imageClass}">image</div>`;
-            }
-            
-            leftContainer2.appendChild(leftWrapper2);
-
-            const rightContainer2 = document.createElement('div');
-            rightContainer2.className = 'right-container';
-            
-            const rightWrapper2 = document.createElement('div');
-            rightWrapper2.className = 'content-wrapper';
-            rightWrapper2.appendChild(renderParagraphs(pageData.right_paras, 820, true));
-            rightContainer2.appendChild(rightWrapper2);
-
-            // 创建布局容器并添加左右容器
-            const layoutContainer2 = document.createElement('div');
-            layoutContainer2.className = 'layout-container';
-            layoutContainer2.appendChild(leftContainer2);
-            layoutContainer2.appendChild(rightContainer2);
-            
-            container.appendChild(layoutContainer2);
-            break;
+        const leftContainer = document.createElement('div');
+        leftContainer.className = 'left-container';
+        const leftWrapper = document.createElement('div');
+        leftWrapper.className = 'content-wrapper';
+        
+        if (pageData.left_paras && pageData.left_paras.length > 0) {
+          const imageContainer = document.createElement('div');
+          imageContainer.className = 'image-container';
+          imageContainer.innerHTML = '<div class="image-placeholder">image</div>';
+          leftWrapper.appendChild(imageContainer);
+          
+          const textHeight = 820 - 460 - 20;
+          leftWrapper.appendChild(renderParagraphs(pageData.left_paras, textHeight, true));
+        } else {
+          leftContainer.style.justifyContent = 'center';
+          leftWrapper.innerHTML = '<div class="image-placeholder">image</div>';
         }
+        
+        leftContainer.appendChild(leftWrapper);
 
-        // Update display area
+        const rightContainer = document.createElement('div');
+        rightContainer.className = 'right-container';
+        const rightWrapper = document.createElement('div');
+        rightWrapper.className = 'content-wrapper';
+        rightWrapper.appendChild(renderParagraphs(pageData.right_paras, 820, true));
+        rightContainer.appendChild(rightWrapper);
+
+        const layoutContainer = document.createElement('div');
+        layoutContainer.className = 'layout-container';
+        layoutContainer.appendChild(leftContainer);
+        layoutContainer.appendChild(rightContainer);
+        container.appendChild(layoutContainer);
+
         layoutDisplay.innerHTML = '';
         layoutDisplay.appendChild(container);
       }
-      
-      // Generate initial layout on page load
-      generateBtn.click();
     });
   </script>
 </body>
-
 </html>
