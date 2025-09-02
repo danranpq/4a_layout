@@ -270,7 +270,28 @@
     }
 
     .file-upload input {
-      margin-top: 5px;
+      display: none;
+    }
+
+    .custom-file-upload {
+      display: inline-block;
+      padding: 8px 16px;
+      background-color: #165DFF;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+      margin-right: 10px;
+    }
+
+    .custom-file-upload:hover {
+      background-color: #0E42CC;
+    }
+
+    .file-status {
+      color: #666;
+      font-size: 14px;
     }
 
     .progress-container {
@@ -481,8 +502,11 @@
           
           <div class="file-upload">
             <label for="excelFile">Upload Excel File (.xlsx):</label>
+            <!-- 自定义文件上传控件 -->
+            <label class="custom-file-upload" for="excelFile">Choose File</label>
             <input type="file" id="excelFile" accept=".xlsx" />
-             <div style="font-size: 14px;font-weight: bold; color:  #ff4d4f; margin-top: 3px;">
+            <span class="file-status" id="fileStatus">No file chosen</span>
+            <div style="font-size: 14px;font-weight: bold; color:  #ff4d4f; margin-top: 3px;">
               Required columns: id, passage
             </div>
           </div>
@@ -576,6 +600,7 @@
       const nextPageBtn = document.getElementById('nextPage');
       const pageInfo = document.getElementById('pageInfo');
       const maxPagesInput = document.getElementById('maxPages');
+      const fileStatus = document.getElementById('fileStatus');
       
       // Batch processing elements
       const excelFile = document.getElementById('excelFile');
@@ -603,6 +628,19 @@
       let batchData = [];
       let processedData = [];
       let currentArticleIndex = 0;
+      
+      // 自定义文件上传状态更新
+      excelFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          // 显示文件名或固定文字"File Chosen"
+          fileStatus.textContent = "File Chosen";
+          // 如果想显示实际文件名，可使用下面这行
+          // fileStatus.textContent = file.name;
+        } else {
+          fileStatus.textContent = "No file chosen";
+        }
+      });
       
       // Check if custom font is available
       function checkFontLoaded() {
@@ -728,367 +766,43 @@
             if (page.right_paras.length > 0) {
               content += page.right_paras.join('\n');
             }
-            pageContents.push(content.trim());
           }
-          
-          // Fill remaining pages with empty strings
-          while (pageContents.length < maxPages) {
-            pageContents.push('');
-          }
-          
-          processedData.push({
-            ...article.originalData,
-            total_pages: Math.min(pages.length, maxPages),
-            review: '',
-            ...pageContents.reduce((acc, content, index) => {
-              acc[`page_${index + 1}`] = content;
-              return acc;
-            }, {})
-          });
-          
-          await new Promise(resolve => setTimeout(resolve, 10));
-        }
-        
-        // Complete processing
-        progressFill.style.width = '100%';
-        progressText.textContent = `Completed ${batchData.length}/${batchData.length}`;
-        
-        // Show first article
-        currentArticleIndex = 0;
-        showArticle(currentArticleIndex);
-        articleNavigation.classList.remove('hidden');
-        reviewSection.classList.remove('hidden');
-        downloadBtn.classList.remove('hidden');
-        processCompleteText.classList.remove('hidden');
-        
-        // 隐藏处理按钮，显示完成文本
-        processBatchBtn.style.display = 'none';
-        processButtonText.textContent = 'Process Complete';
-        batchLoadingIndicator.style.display = 'none';
-        batchStatus.innerHTML = `<div class="success-message">Processed ${batchData.length} articles successfully</div>`;
-      });
-
-      // Article navigation
-      prevArticleBtn.addEventListener('click', () => {
-        if (currentArticleIndex > 0) {
-          saveReview();
-          showArticle(currentArticleIndex - 1);
         }
       });
-
-      nextArticleBtn.addEventListener('click', () => {
-        if (currentArticleIndex < processedData.length - 1) {
-          saveReview();
-          showArticle(currentArticleIndex + 1);
-        }
-      });
-
-      // Save review selection
-      function saveReview() {
-        const selectedReview = document.querySelector('input[name="review"]:checked');
-        if (selectedReview) {
-          processedData[currentArticleIndex].review = selectedReview.value;
-        }
-      }
-
-      // Review radio change handler
-      reviewRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-          processedData[currentArticleIndex].review = this.value;
-        });
-      });
-
-      // Show specific article
-      function showArticle(index) {
-        currentArticleIndex = index;
-        const article = processedData[index];
-        
-        // Update text area and generate layout
-        textInput.value = article.passage;
-        generateLayout();
-        
-        // Update article info
-        articleInfo.textContent = `Article ${index + 1} of ${processedData.length} (ID: ${article.id})`;
-        
-        // Update navigation buttons
-        prevArticleBtn.disabled = index === 0;
-        nextArticleBtn.disabled = index === processedData.length - 1;
-        
-        // Update review selection
-        reviewRadios.forEach(radio => {
-          radio.checked = radio.value === article.review;
-        });
-      }
-
-      // Download results
-      downloadBtn.addEventListener('click', function() {
-        if (processedData.length === 0) return;
-        
-        saveReview();
-        
-        const worksheet = XLSX.utils.json_to_sheet(processedData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Processed Layouts');
-        
-        XLSX.writeFile(workbook, 'processed_layouts_with_review.xlsx');
-      });
-
-      // Pagination handlers
-      prevPageBtn.addEventListener('click', function() {
-        if (currentPage > 0) {
-          showPage(currentPage - 1);
-        }
-      });
-      
-      nextPageBtn.addEventListener('click', function() {
-        if (currentPage < totalPages - 1) {
-          showPage(currentPage + 1);
-        }
-      });
-
-      // Show specific page
-      function showPage(pageIndex) {
-        currentPage = pageIndex;
-        prevPageBtn.disabled = currentPage === 0;
-        nextPageBtn.disabled = currentPage === totalPages - 1;
-        pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
-        renderPage(pagesData[currentPage]);
-      }
-
-      // Main layout generation
-      function generateLayout() {
-        const text = textInput.value.trim();
-        if (!text) {
-          layoutDisplay.innerHTML = 'Please process batch to view content';
-          return;
-        }
-
-        const paragraphs = text.split(/\n+/)
-          .filter(para => para.trim() !== '')
-          .map(para => para.replace(/^- /, '').trim());
-
-        pagesData = calculatePages(paragraphs, true, false);
-        totalPages = pagesData.length;
-        
-        if (totalPages === 0) {
-          layoutDisplay.innerHTML = 'No content to display';
-          pagination.style.display = 'none';
-          pageInfo.style.display = 'none';
-          return;
-        }
-        
-        showPage(0);
-        
-        if (totalPages > 1) {
-          pagination.style.display = 'flex';
-          pageInfo.style.display = 'block';
-        } else {
-          pagination.style.display = 'none';
-          pageInfo.style.display = 'none';
-        }
-      }
-
-      // Measure text height
-      function measureTextHeight(paragraphs) {
-        measureContainer.innerHTML = '';
-        const container = document.createElement('div');
-        container.className = 'text-area';
-
-        paragraphs.forEach((para) => {
-          const paraElement = document.createElement('div');
-          paraElement.className = 'paragraph';
-          paraElement.textContent = para;
-          container.appendChild(paraElement);
-        });
-
-        measureContainer.appendChild(container);
-        container.offsetHeight;
-        return container.offsetHeight;
-      }
-
-      // Calculate pages (image layout only)
-      function calculatePages(paragraphs, hasImage, useSmallImage) {
-        const pages = [];
-        let remainingParas = [...paragraphs];
-        
-        while (remainingParas.length > 0) {
-          const pageData = {
-            type: 'image_with_text',
-            left_paras: [],
-            right_paras: [],
-            useSmallImage: false
-          };
-          
-          const imageHeight = 460;
-          const imageGap = 20;
-          const leftAvailableHeight = 820 - imageHeight - imageGap;
-          
-          if (remainingParas.length === 1) {
-            pageData.right_paras = [remainingParas[0]];
-            remainingParas = [];
-            pages.push(pageData);
-            continue;
-          }
-          
-          for (let i = 0; i < remainingParas.length; i++) {
-            const tempParas = [...pageData.left_paras, remainingParas[i]];
-            const tempHeight = measureTextHeight(tempParas);
-            
-            if (tempHeight <= leftAvailableHeight) {
-              pageData.left_paras.push(remainingParas[i]);
-            } else {
-              break;
-            }
-          }
-          
-          remainingParas = remainingParas.slice(pageData.left_paras.length);
-          
-          const rightAvailableHeight = 820;
-          
-          for (let i = 0; i < remainingParas.length; i++) {
-            const tempParas = [...pageData.right_paras, remainingParas[i]];
-            const tempHeight = measureTextHeight(tempParas);
-            
-            if (tempHeight <= rightAvailableHeight) {
-              pageData.right_paras.push(remainingParas[i]);
-            } else {
-              break;
-            }
-          }
-          
-          remainingParas = remainingParas.slice(pageData.right_paras.length);
-          
-          if (pageData.right_paras.length === 0 && pageData.left_paras.length > 1) {
-            let splitIndex = 0;
-            
-            for (let i = 1; i < pageData.left_paras.length; i++) {
-              const leftPart = pageData.left_paras.slice(0, i);
-              const rightPart = pageData.left_paras.slice(i);
-              
-              const leftHeight = measureTextHeight(leftPart);
-              const rightHeight = measureTextHeight(rightPart);
-              
-              if (leftHeight <= leftAvailableHeight && rightHeight <= rightAvailableHeight) {
-                splitIndex = i;
-                break;
-              }
-            }
-            
-            if (splitIndex > 0) {
-              pageData.right_paras = pageData.left_paras.slice(splitIndex);
-              pageData.left_paras = pageData.left_paras.slice(0, splitIndex);
-            } else if (remainingParas.length === 0) {
-              pageData.right_paras = [...pageData.left_paras];
-              pageData.left_paras = [];
-            }
-          }
-          
-          pages.push(pageData);
-        }
-        
-        return pages;
-      }
-
-      // Render paragraphs
-      function renderParagraphs(paragraphs, containerHeight, isOverflow = false) {
-        if (!paragraphs || paragraphs.length === 0) return null;
-
-        const container = document.createElement('div');
-        container.className = 'text-container';
-
-        paragraphs.forEach(para => {
-          const paraElement = document.createElement('div');
-          paraElement.className = 'paragraph';
-          paraElement.textContent = para;
-          container.appendChild(paraElement);
-        });
-
-        const contentHeight = container.scrollHeight;
-        if (contentHeight > containerHeight && isOverflow) {
-          const indicator = document.createElement('div');
-          indicator.className = 'overflow-indicator';
-          indicator.textContent = 'Content exceeds container';
-          container.appendChild(indicator);
-        }
-
-        return container;
-      }
-
-      // Render single page
-      function renderPage(pageData) {
-        const container = document.createElement('div');
-        container.className = 'page active';
-
-        const leftContainer = document.createElement('div');
-        leftContainer.className = 'left-container';
-        const leftWrapper = document.createElement('div');
-        leftWrapper.className = 'content-wrapper';
-        
-        if (pageData.left_paras && pageData.left_paras.length > 0) {
-          const imageContainer = document.createElement('div');
-          imageContainer.className = 'image-container';
-          imageContainer.innerHTML = '<div class="image-placeholder">image</div>';
-          leftWrapper.appendChild(imageContainer);
-          
-          const textHeight = 820 - 460 - 20;
-          leftWrapper.appendChild(renderParagraphs(pageData.left_paras, textHeight, true));
-        } else {
-          leftContainer.style.justifyContent = 'center';
-          leftWrapper.innerHTML = '<div class="image-placeholder">image</div>';
-        }
-        
-        leftContainer.appendChild(leftWrapper);
-
-        const rightContainer = document.createElement('div');
-        rightContainer.className = 'right-container';
-        const rightWrapper = document.createElement('div');
-        rightWrapper.className = 'content-wrapper';
-        rightWrapper.appendChild(renderParagraphs(pageData.right_paras, 820, true));
-        rightContainer.appendChild(rightWrapper);
-
-        const layoutContainer = document.createElement('div');
-        layoutContainer.className = 'layout-container';
-        layoutContainer.appendChild(leftContainer);
-        layoutContainer.appendChild(rightContainer);
-        container.appendChild(layoutContainer);
-
-        layoutDisplay.innerHTML = '';
-        layoutDisplay.appendChild(container);
-      }
     });
   </script>
+  <!-- 在这里添加缓存清除脚本 -->
+  <script>
+    // 强制浏览器不使用缓存版本
+    if (window.performance) {
+    if (performance.navigation.type === 1) {
+    // 如果是刷新操作，重新加载并清除缓存
+    window.location.reload(true);
+        }
+    }
 
-   <!-- 在这里添加缓存清除脚本 -->
-805    <script>
-806    // 强制浏览器不使用缓存版本
-807    if (window.performance) {
-808      if (performance.navigation.type === 1) {
-809        // 如果是刷新操作，重新加载并清除缓存
-810        window.location.reload(true);
-811      }
-812    }
-813
-814    // 更简单的方法：每次加载都添加随机参数
-815    document.addEventListener('DOMContentLoaded', function() {
-816      const links = document.querySelectorAll('link[rel="stylesheet"]');
-817      const scripts = document.querySelectorAll('script[src]');
-818      
-819      const timestamp = '?v=' + new Date().getTime();
-820      
-821      links.forEach(link => {
-822        const href = link.href;
-823        if (href && href.indexOf('?') === -1) {
-824          link.href = href + timestamp;
-825        }
-826      });
-827      
-828      scripts.forEach(script => {
-829        const src = script.src;
-830        if (src && src.indexOf('?') === -1 && !script.hasAttribute('data-no-cache')) {
-831          script.src = src + timestamp;
-832        }
-833      });
-834    });
-835    </script>
+  // 或者更简单的方法：每次加载都添加随机参数
+   document.addEventListener('DOMContentLoaded', function() {
+     const links = document.querySelectorAll('link[rel="stylesheet"]');
+     const scripts = document.querySelectorAll('script[src]');
+      
+     const timestamp = '?v=' + new Date().getTime();
+      
+     links.forEach(link => {
+       const href = link.href;
+       if (href && href.indexOf('?') === -1) {
+         link.href = href + timestamp;
+       }
+      });
+      
+     scripts.forEach(script => {
+        const src = script.src;
+        if (src && src.indexOf('?') === -1 && !script.hasAttribute('data-no-cache')) {
+          script.src = src + timestamp;
+        }
+      });
+    });
+    </script>
+
 </body>
 </html>
