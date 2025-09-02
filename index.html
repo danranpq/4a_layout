@@ -305,21 +305,18 @@
     <div class="row">
       <div class="column">
         <label for="textInput">Enter Text</label><br>
-        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">In a tall tree in the forest, Little Bird lived with her mum and sister. The birds were growing up, but the nest was small. It was too little for everyone.
-Mother Bird looked at her children. "It's time for you to fly," she said.
-Sister Bird stood up and looked down.
-"You can do it," said Mother Bird.
-"Yes, I can," Sister Bird said quietly. Then she jumped out of the nest and fell.
-Mother Bird and Little Bird looked around. "Where is she?" they wondered.
-Suddenly, they saw her flying up in the sky, singing a happy song. Mother Bird smiled.
-Next, it was Little Bird’s turn, but she was scared. She looked down at the ground.
-"It's a very long way down," she thought.
-"You can do it," said Mother Bird.
-"No, I can't," she said quietly. Little tears rolled down her cheeks.
-"Don't worry," said Mother Bird. "You are a bird. Birds can fly."
-Little Bird closed her eyes and jumped. She fell a long way, and then she opened her eyes. She was flying with Sister Bird.
-"You see," called Mother Bird, "you can do it."
-"Yes, I can," Little Bird laughed, as they all sang a happy song.</textarea>
+        <textarea id="textInput" placeholder="Enter text content. Paragraphs will be automatically separated by line breaks">Ming got off the school bus and walked home next to Mum. Mrs Green had set the class a project for homework and Ming was cross.
+"Mum, it's not fair," Ming complained. "Mrs Green has set us a project for homework, and we have to finish it by Monday. I wanted to spend the weekend playing with my toys or going to the park, not learning about dinosaurs!"
+"Sorry," said Mum. "You will need to work on your project."
+Ming told Mum all about the project. Everyone had to choose an unusual animal to write about.
+"The only unusual animal I can think of is a dinosaur and I don't like dinosaurs," he said sadly. "I would rather learn to play football!" Ming added.
+"I know, we can go to the zoo!" said Mum.
+On Saturday morning, Mum, Dad and Ming got into the car. Then they went to the zoo.
+First, they saw giant pandas. Then they saw lions and tigers. After lunch, they saw the penguins.
+Ming woke up early on Sunday morning. He wanted to work on his project. Ming worked very hard all morning.
+"We can go to the park after lunch," Mum told Ming.
+"No, thank you. I want to spend more time on my project. I can't wait to show it to Mrs Green. I didn't know that there are birds that cannot fly. Penguins are so cool."
+Ming was the first student in the classroom on Monday morning!</textarea>
       </div>
       <div class="column">
         <div class="checkbox-group">
@@ -544,7 +541,7 @@ Little Bird closed her eyes and jumped. She fell a long way, and then she opened
         return height;
       }
 
-      // Calculate pages
+      // Calculate pages - FIXED VERSION
       function calculatePages(paragraphs, hasImage, useSmallImage) {
         const pages = [];
         
@@ -588,7 +585,7 @@ Little Bird closed her eyes and jumped. She fell a long way, and then she opened
           return pages;
         }
         
-        // With image case - use consistent layout for all pages
+        // With image case
         let remainingParas = [...paragraphs];
         
         while (remainingParas.length > 0) {
@@ -604,8 +601,15 @@ Little Bird closed her eyes and jumped. She fell a long way, and then she opened
           const imageGap = 20;
           const leftAvailableHeight = 820 - imageHeight - imageGap;
           
-          // For all pages, try to put content on both sides
-          // First try to add paragraphs to left side
+          // Special case: if only one paragraph remains, put it on the right side
+          if (remainingParas.length === 1) {
+            pageData.right_paras = [remainingParas[0]];
+            remainingParas = [];
+            pages.push(pageData);
+            continue;
+          }
+          
+          // First try to add paragraphs to left side (under image)
           for (let i = 0; i < remainingParas.length; i++) {
             const tempParas = [...pageData.left_paras, remainingParas[i]];
             const tempHeight = measureTextHeight(tempParas);
@@ -617,10 +621,10 @@ Little Bird closed her eyes and jumped. She fell a long way, and then she opened
             }
           }
           
-          // Remove used paragraphs
+          // Remove used paragraphs from left side
           remainingParas = remainingParas.slice(pageData.left_paras.length);
           
-          // Add remaining paragraphs to right side
+          // Add paragraphs to right side
           const rightAvailableHeight = 820;
           
           for (let i = 0; i < remainingParas.length; i++) {
@@ -634,19 +638,40 @@ Little Bird closed her eyes and jumped. She fell a long way, and then she opened
             }
           }
           
-          // Remove used paragraphs
+          // Remove used paragraphs from right side
           remainingParas = remainingParas.slice(pageData.right_paras.length);
           
-          // If no content was added to right side, balance the content
+          // If no content was added to right side and left side has content,
+          // try to balance by moving some content from left to right
           if (pageData.right_paras.length === 0 && pageData.left_paras.length > 1) {
-            // Move some content from left to right to balance the page
-            const midPoint = Math.ceil(pageData.left_paras.length / 2);
-            pageData.right_paras = pageData.left_paras.slice(midPoint);
-            pageData.left_paras = pageData.left_paras.slice(0, midPoint);
+            // Find the optimal split point
+            let splitIndex = 0;
             
-            // Put the moved content back to remaining paragraphs
-            remainingParas = [...pageData.right_paras, ...remainingParas];
-            pageData.right_paras = [];
+            for (let i = 1; i < pageData.left_paras.length; i++) {
+              const leftPart = pageData.left_paras.slice(0, i);
+              const rightPart = pageData.left_paras.slice(i);
+              
+              const leftHeight = measureTextHeight(leftPart);
+              const rightHeight = measureTextHeight(rightPart);
+              
+              // Check if both parts fit in their respective containers
+              if (leftHeight <= leftAvailableHeight && rightHeight <= rightAvailableHeight) {
+                splitIndex = i;
+                break;
+              }
+            }
+            
+            // If we found a valid split, move content to right side
+            if (splitIndex > 0) {
+              pageData.right_paras = pageData.left_paras.slice(splitIndex);
+              pageData.left_paras = pageData.left_paras.slice(0, splitIndex);
+            } else {
+              // If no split found, move all content to right side for the last paragraph
+              if (remainingParas.length === 0) {
+                pageData.right_paras = [...pageData.left_paras];
+                pageData.left_paras = [];
+              }
+            }
           }
           
           pages.push(pageData);
@@ -726,17 +751,22 @@ Little Bird closed her eyes and jumped. She fell a long way, and then she opened
             const leftWrapper2 = document.createElement('div');
             leftWrapper2.className = 'content-wrapper';
             
-            // Create image container for centering
-            const imageContainer = document.createElement('div');
-            imageContainer.className = 'image-container';
-            imageContainer.innerHTML = `<div class="${imageClass}">image</div>`;
-            
-            leftWrapper2.appendChild(imageContainer);
-            
-            // Add text content if available
+            // Only show image if there's content on left side
             if (pageData.left_paras && pageData.left_paras.length > 0) {
+              // Create image container for centering
+              const imageContainer = document.createElement('div');
+              imageContainer.className = 'image-container';
+              imageContainer.innerHTML = `<div class="${imageClass}">image</div>`;
+              
+              leftWrapper2.appendChild(imageContainer);
+              
+              // Add text content
               const textHeight = 820 - (pageData.useSmallImage ? 370 : 460) - 20;
               leftWrapper2.appendChild(renderParagraphs(pageData.left_paras, textHeight, true));
+            } else {
+              // If no content on left, just show centered image
+              leftContainer2.style.justifyContent = 'center';
+              leftWrapper2.innerHTML = `<div class="${imageClass}">image</div>`;
             }
             
             leftContainer2.appendChild(leftWrapper2);
