@@ -869,38 +869,38 @@ Ming was the first student in the classroom on Monday morning!</textarea>
     });
   </script>
 
- <!-- 在这里添加缓存清除脚本 -->
-805    <script>
-806    // 强制浏览器不使用缓存版本
-807    if (window.performance) {
-808      if (performance.navigation.type === 1) {
-809        // 如果是刷新操作，重新加载并清除缓存
-810        window.location.reload(true);
-811      }
-812    }
-813
-814    // 或者更简单的方法：每次加载都添加随机参数
-815    document.addEventListener('DOMContentLoaded', function() {
-816      const links = document.querySelectorAll('link[rel="stylesheet"]');
-817      const scripts = document.querySelectorAll('script[src]');
-818      
-819      const timestamp = '?v=' + new Date().getTime();
-820      
-821      links.forEach(link => {
-822        const href = link.href;
-823        if (href && href.indexOf('?') === -1) {
-824          link.href = href + timestamp;
-825        }
-826      });
-827      
-828      scripts.forEach(script => {
-829        const src = script.src;
-830        if (src && src.indexOf('?') === -1 && !script.hasAttribute('data-no-cache')) {
-831          script.src = src + timestamp;
-832        }
-833      });
-834    });
-835    </script>
+  <!-- 在这里添加缓存清除脚本 -->
+    <script>
+    // 强制浏览器不使用缓存版本
+    if (window.performance) {
+    if (performance.navigation.type === 1) {
+    // 如果是刷新操作，重新加载并清除缓存
+    window.location.reload(true);
+        }
+    }
+
+  // 或者更简单的方法：每次加载都添加随机参数
+   document.addEventListener('DOMContentLoaded', function() {
+     const links = document.querySelectorAll('link[rel="stylesheet"]');
+     const scripts = document.querySelectorAll('script[src]');
+      
+     const timestamp = '?v=' + new Date().getTime();
+      
+     links.forEach(link => {
+       const href = link.href;
+       if (href && href.indexOf('?') === -1) {
+         link.href = href + timestamp;
+       }
+      });
+      
+     scripts.forEach(script => {
+        const src = script.src;
+        if (src && src.indexOf('?') === -1 && !script.hasAttribute('data-no-cache')) {
+          script.src = src + timestamp;
+        }
+      });
+    });
+    </script>
 
 </body>
 
