@@ -34,17 +34,19 @@
 
     /* 自定义布局区域 - 横向排列多个页面 */
     .custom-layout-area {
-      margin-left: 20px;
+       /* 移除固定margin-left，避免左侧空间被占用 */
+      margin: 0 auto;
       display: flex;
       gap: 20px;
       padding: 20px;
       overflow-x: auto;
       min-height: 920px;
       box-sizing: border-box;
-       /* 关键修改：将 justify-content 改为 center，使展示区域水平居中 */
-      justify-content: center;
-      /*让区域宽度占满*/
-      width: 100%;
+     /* 核心：使用flex-start保证内容从左到右排列，便于完整滑动 */
+      justify-content: flex-start;
+      /* 限制最大宽度，实现居中视觉效果 */
+      max-width: calc(100% - 40px);
+      width: auto;
     }
 
     .layout-container {
@@ -395,11 +397,13 @@
 
   <!-- 自定义布局内容区域 -->
   <div id="customLayoutContent">
-    <!-- 自定义布局显示区域 - 横向排列多个页面 -->
-    <div class="custom-layout-area" id="customLayoutDisplay">
-      <div class="initial-prompt">Please set the number of pages first, then configure each page's layout and text</div>
+    <!-- 添加居中容器 -->
+    <div style="display: flex; justify-content: center; width: 100%;">
+      <!-- 自定义布局显示区域 - 横向排列多个页面 -->
+      <div class="custom-layout-area" id="customLayoutDisplay">
+        <div class="initial-prompt">Please set the number of pages first, then configure each page's layout and text</div>
+      </div>
     </div>
-
     <!-- 自定义布局控制面板 -->
     <div class="custom-control-panel">
       <!-- 页面数量设置 -->
