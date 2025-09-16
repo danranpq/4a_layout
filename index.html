@@ -436,7 +436,7 @@
   <!-- Tab按钮容器：包裹两个切换按钮 -->
   <div class="tab-container">
     <button class="tab-btn active" id="batchModifyBtn">batch modify</button>
-    <button class="tab-btn" id="customModifyBtn">small modify</button>
+    <button class="tab-btn" id="customModifyBtn">custom modify</button>
   </div>
 
   <h1>Batch Text Layout Generator</h1>
@@ -566,7 +566,7 @@
       customModifyBtn.addEventListener('click', function() {
         customModifyBtn.classList.add('active');
         batchModifyBtn.classList.remove('active');
-        window.location.href = 'custom_modify.html'; // 子页面文件名需和实际一致
+        window.location.href = 'custom_layout.html'; // 子页面文件名需和实际一致
         
       });
       
