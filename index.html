@@ -161,12 +161,12 @@
       transition: background-color 0.3s;
     }
 
-    #generateBtn, #processBatchBtn, #downloadBtn {
+    #generateBtn, #processBatchBtn, #downloadBtn, #resetBtn {
       background-color: #165DFF;
       color: white;
     }
 
-    #generateBtn:hover, #processBatchBtn:hover, #downloadBtn:hover {
+    #generateBtn:hover, #processBatchBtn:hover, #downloadBtn:hover #resetBtn:hover {
       background-color: #0E42CC;
     }
 
@@ -523,6 +523,8 @@
               <span id="batchLoadingIndicator" class="loading" style="display:none;"></span>
             </button>
             <button id="downloadBtn" class="hidden">Download Results</button>
+            <!-- 新增的重置按钮 -->
+            <button id="resetBtn">Reset</button>
           </div>
           
           <div id="batchStatus" class="hidden"></div>
@@ -596,6 +598,8 @@
       const reviewSection = document.getElementById('reviewSection');
       const reviewRadios = document.querySelectorAll('input[name="review"]');
       const processCompleteText = document.getElementById('processCompleteText');
+      // 重置按钮元素
+      const resetBtn = document.getElementById('resetBtn');
       
       // Variables
       let fontLoaded = false;
@@ -605,6 +609,61 @@
       let batchData = [];
       let processedData = [];
       let currentArticleIndex = 0;
+
+         // 重置按钮点击事件处理
+      resetBtn.addEventListener('click', function() {
+        // 重置页面状态到初始状态
+        if (confirm('Are you sure you want to reset? All progress will be lost.')) {
+          // 清空文件输入
+          excelFile.value = '';
+          
+          // 重置文本区域
+          textInput.value = '';
+          
+          // 重置布局显示
+          layoutDisplay.innerHTML = 'Please upload Excel file and process batch to view results';
+          
+          // 隐藏分页控件
+          pagination.style.display = 'none';
+          pageInfo.style.display = 'none';
+          
+          // 隐藏进度条
+          progressContainer.classList.add('hidden');
+          progressFill.style.width = '0%';
+          progressText.textContent = 'Processing 0/0';
+          
+          // 隐藏文章导航
+          articleNavigation.classList.add('hidden');
+          
+          // 隐藏评论区域
+          reviewSection.classList.add('hidden');
+          
+          // 隐藏下载按钮和完成文本
+          downloadBtn.classList.add('hidden');
+          processCompleteText.classList.add('hidden');
+          
+          // 重置处理按钮状态
+          processButtonText.textContent = 'Process Batch';
+          processBatchBtn.disabled = true;
+          batchLoadingIndicator.style.display = 'none';
+          processBatchBtn.style.display = 'inline-block';
+          
+          // 清空状态变量
+          batchData = [];
+          processedData = [];
+          currentArticleIndex = 0;
+          currentPage = 0;
+          totalPages = 0;
+          pagesData = [];
+          
+          // 清除状态消息
+          batchStatus.classList.add('hidden');
+          batchStatus.innerHTML = '';
+          
+          // 清除评论选择
+          reviewRadios.forEach(radio => radio.checked = false);
+        }
+      });
       
       // Check if custom font is available
       function checkFontLoaded() {
