@@ -436,7 +436,7 @@
   <!-- Tab按钮容器：包裹两个切换按钮 -->
   <div class="tab-container">
     <button class="tab-btn active" id="batchModifyBtn">batch modify</button>
-    <button class="tab-btn" id="smallModifyBtn">small modify</button>
+    <button class="tab-btn" id="customModifyBtn">small modify</button>
   </div>
 
   <h1>Batch Text Layout Generator</h1>
@@ -553,20 +553,20 @@
       // Tab 按钮
       // 1. 获取Tab按钮（需确保HTML中已添加Tab按钮元素）
       const batchModifyBtn = document.getElementById('batchModifyBtn');
-      const smallModifyBtn = document.getElementById('smallModifyBtn');
+      const customModifyBtn = document.getElementById('customModifyBtn');
 
       // 2. batch modify按钮点击：跳转到子页面+切换样式
       batchModifyBtn.addEventListener('click', function() {
         batchModifyBtn.classList.add('active');
-        smallModifyBtn.classList.remove('active');
+        customModifyBtn.classList.remove('active');
  
       });
 
       // 3. small modify按钮点击：跳转到子页面+切换样式
-      smallModifyBtn.addEventListener('click', function() {
-        smallModifyBtn.classList.add('active');
+      customModifyBtn.addEventListener('click', function() {
+        customModifyBtn.classList.add('active');
         batchModifyBtn.classList.remove('active');
-        window.location.href = 'small_modify.html'; // 子页面文件名需和实际一致
+        window.location.href = 'custom_modify.html'; // 子页面文件名需和实际一致
         
       });
       
