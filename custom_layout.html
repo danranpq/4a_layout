@@ -346,10 +346,48 @@
       align-items: center;
       justify-content: center;
     }
+
+    
+
+    /* Tab容器样式：控制按钮整体位置，与原页面宽度对齐 */
+    .tab-container {
+      width: 1800px; 
+      margin: 0 auto; 
+      padding-top: 20px; 
+    }
+
+    .tab-btn {
+      padding: 10px 25px;
+      font-size: 16px;
+      border: none; 
+      border-radius: 4px 4px 0 0; 
+      cursor: pointer; 
+      background-color: #f0f0f0; 
+      transition: background-color 0.3s; 
+      margin-right: 5px; 
+    }
+
+
+    .tab-btn.active {
+      background-color: #165DFF; 
+      color: white; 
+      font-weight: 500;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background-color: #e0e0e0; 
+    }
+
   </style>
 </head>
 
 <body>
+  <!-- Tab按钮容器：包裹两个切换按钮 -->
+  <div class="tab-container">
+    <button class="tab-btn" id="batchModifyBtn">batch modify</button>
+    <button class="tab-btn active" id="customModifyBtn">custom modify</button>
+  </div>
+  
   <h1>Custom Layout Generator (Per-Page Input)</h1>
 
   <!-- 自定义布局内容区域 -->
@@ -392,6 +430,25 @@
       // Set fixed zoom to 33%
       document.body.style.zoom = "33%";
 
+      // Tab 按钮
+      // 1. 获取Tab按钮（需确保HTML中已添加Tab按钮元素）
+      const batchModifyBtn = document.getElementById('batchModifyBtn');
+      const customModifyBtn = document.getElementById('customModifyBtn');
+
+      // 2. batch modify按钮点击：切换到当前页面（保持样式激活）
+      batchModifyBtn.addEventListener('click', function() {
+        batchModifyBtn.classList.add('active');
+        customModifyBtn.classList.remove('active');
+        window.location.href = 'index.html'; // 子页面文件名需和实际一致
+      });
+
+      // 3. small modify按钮点击：跳转到子页面+切换样式
+      customModifyBtn.addEventListener('click', function() {
+        customModifyBtn.classList.add('active');
+        batchModifyBtn.classList.remove('active');
+      });
+
+      
       // 核心元素引用
       const pageCountInput = document.getElementById('pageCount');
       const generatePageConfigsBtn = document.getElementById('generatePageConfigsBtn');
